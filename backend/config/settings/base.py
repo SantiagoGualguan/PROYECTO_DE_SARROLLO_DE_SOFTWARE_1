@@ -82,9 +82,14 @@ SIMPLE_JWT = {
 }
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default='postgresql://postgres:postgres@localhost:5432/dancelearn_db'
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'dancelearn_db',
+        'USER': 'dancelearn_user',
+        'PASSWORD': 'DanceLearn2026!',
+        'HOST': 'db',
+        'PORT': '5432',
+    }
 }
 
 LANGUAGE_CODE = 'es-co'
