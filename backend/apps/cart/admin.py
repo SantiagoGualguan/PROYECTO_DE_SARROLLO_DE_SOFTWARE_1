@@ -1,16 +1,16 @@
 from django.contrib import admin
 
-from .models import Carrito, ItemCarrito
+from .models import ShoppingCart, CartItem
 
 
-@admin.register(Carrito)
-class CarritoAdmin(admin.ModelAdmin):
+@admin.register(ShoppingCart)
+class ShoppingCartAdmin(admin.ModelAdmin):
     # TODO: configurar list_display, search_fields, etc.
     pass
 
 
-@admin.register(ItemCarrito)
-class ItemCarritoAdmin(admin.ModelAdmin):
+@admin.register(CartItem)
+class CartItemAdmin(admin.ModelAdmin):
     # TODO: configurar list_display, search_fields, etc.
     pass
 

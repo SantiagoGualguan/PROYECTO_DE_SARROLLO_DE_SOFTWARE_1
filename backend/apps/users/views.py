@@ -18,7 +18,15 @@ class AuthViewSet(viewsets.ViewSet):
     - POST /api/auth/recover-password/
     - POST /api/auth/reset-password/<token>/
     """
+    """
+    each action uses the base name 'auth' for the urls
+    and adds the specific action name to the url, for example:       
+    - POST /api/auth/login/ -> calls the login method
+    auth = base and login = action name, so the url is /api/auth/login/
+     this allows us to have a clean and organized url structure for authentication related actions.
+    """
 
+    queryset = CustomUser.objects.all()
     @action(detail=False, methods=["post"], permission_classes=[AllowAny])
     def login(self, request):
         identifier = (

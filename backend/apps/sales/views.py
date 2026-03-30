@@ -1,11 +1,11 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 
-from .models import Venta
-from .serializers import VentaSerializer
+from .models import Purchase
+from .serializers import PurchaseSerializer
 
 
-class VentaViewSet(viewsets.ModelViewSet):
+class PurchaseViewSet(viewsets.ModelViewSet):
     """
     SALES:
     - POST /api/sales/                  # crear venta (paso final)
@@ -16,8 +16,8 @@ class VentaViewSet(viewsets.ModelViewSet):
     - POST /api/sales/confirm-payment/  # paso 3 wizard
     """
 
-    queryset = Venta.objects.all()
-    serializer_class = VentaSerializer
+    queryset = Purchase.objects.all()
+    serializer_class = PurchaseSerializer
 
     def list(self, request, *args, **kwargs):
         raise NotImplementedError("TODO: implementar historial de ventas del cliente")

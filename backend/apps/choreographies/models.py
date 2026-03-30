@@ -1,61 +1,67 @@
 from django.db import models
 
-from apps.users.models import CustomUser
+from apps.users.models import Profesor
 
 
-class Coreografia(models.Model):
-    GENERO_CHOICES = [
-        ("salsa", "Salsa"),
-        ("bachata", "Bachata"),
-        ("merengue", "Merengue"),
-        ("pop", "Pop"),
-        ("hip_hop", "Hip-Hop"),
-        ("reggaeton", "Reggaetón"),
-        ("cumbia", "Cumbia"),
-        ("otro", "Otro"),
+class Coreography(models.Model):
+    DIFFICULTY_CHOICES = [
+        ("basic", "basico"),
+        ("intermediate", "intermedio"),
+        ("advanced", "avanzado"),
     ]
 
-    NIVEL_CHOICES = [
-        ("basico", "Básico"),
-        ("intermedio", "Intermedio"),
-        ("avanzado", "Avanzado"),
-    ]
-
-    nombre_cancion = models.CharField(max_length=200)
-    artista = models.CharField(max_length=200)
-    genero = models.CharField(max_length=20, choices=GENERO_CHOICES)
-    nivel_dificultad = models.CharField(max_length=20, choices=NIVEL_CHOICES)
-    descripcion = models.TextField(blank=True)
-    profesor_principal = models.ForeignKey(
-        CustomUser,
-        related_name="coreografias_como_principal",
-        on_delete=models.PROTECT,
-    )
-    bailarin_invitado = models.ForeignKey(
-        CustomUser,
+    coreography_id = models.AutoField(primary_key=True)
+    c_name = models.CharField(max_length=100)
+    image_url = models.CharField(max_length=255, blank=True, null=True)
+    c_description = models.CharField(max_length=500, blank=True, null=True)
+    dificulty_level = models.CharField(max_length=30, choices=DIFFICULTY_CHOICES)
+    song_name = models.CharField(max_length=100, blank=True, null=True)
+    song_genre = models.CharField(max_length=50, blank=True, null=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    times_sold = models.IntegerField(default=0)
+    profesor = models.ForeignKey(
+        Profesor,
+        db_column="profesor_id",
+        related_name="coreographies_as_main",
+        on_delete=models.DO_NOTHING,
         null=True,
         blank=True,
-        related_name="coreografias_como_invitado",
-        on_delete=models.PROTECT,
     )
-    precio = models.DecimalField(max_digits=10, decimal_places=2)
-    imagen_portada = models.ImageField(upload_to="coreografias/")
-    numero_ventas = models.PositiveIntegerField(default=0)  # para ranking 'más vendidos'
-    activa = models.BooleanField(default=True)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-
-    # TODO: agregar métodos de negocio relacionados con ranking y disponibilidad
-
-
-class VideoClip(models.Model):
-    coreografia = models.ForeignKey(
-        Coreografia, related_name="videos", on_delete=models.CASCADE
+    assistent_profesor = models.ForeignKey(
+        Profesor,
+        db_column="assistent_profesor_id",
+        related_name="coreographies_as_assistant",
+        on_delete=models.DO_NOTHING,
+        null=True,
+        blank=True,
     )
-    titulo = models.CharField(max_length=200)
-    descripcion = models.TextField(blank=True)
-    url_video = models.URLField()  # URL del video (YouTube embed, Vimeo, etc.)
-    orden = models.PositiveIntegerField()  # orden dentro del paquete
-    duracion = models.DurationField(null=True, blank=True)
+    status = models.CharField(max_length=20, default="active")
+    creation_date = models.DateTimeField(db_column="creation_date", null=True, blank=True)
 
-    # TODO: agregar métodos auxiliares si se requieren
+    class Meta:
+        managed = False
+        db_table = "coreography"
+
+    def __str__(self):
+        return self.c_name
+
+
+class Video(models.Model):
+    video_id = models.AutoField(primary_key=True)
+    video_name = models.CharField(max_length=100)
+    video_url = models.CharField(max_length=255)
+    coreography = models.ForeignKey(
+        Coreography,
+        db_column="coreography_id",
+        related_name="videos",
+        on_delete=models.DO_NOTHING,
+    )
+    upload_date = models.DateTimeField(db_column="upload_date", null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = "video"
+
+    def __str__(self):
+        return self.video_name
 
