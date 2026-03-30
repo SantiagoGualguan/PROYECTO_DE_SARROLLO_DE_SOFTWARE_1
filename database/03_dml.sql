@@ -4,12 +4,13 @@
 
 -- Users (one of each type)
 INSERT INTO users (u_name, last_name, u_password, u_type, validated) VALUES
-('Carlos', 'Ramirez', 'hashed_password_1', 'admin', TRUE),
-('Maria', 'Lopez', 'hashed_password_2', 'director', TRUE),
-('Juan', 'Torres', 'hashed_password_3', 'profesor', TRUE),
-('Ana', 'Garcia', 'hashed_password_4', 'profesor', TRUE),
-('Luis', 'Martinez', 'hashed_password_5', 'client', TRUE),
-('Sofia', 'Herrera', 'hashed_password_6', 'client', FALSE);
+--- The password is the same for all users: "admin123"
+('Carlos', 'Ramirez', 'pbkdf2_sha256$600000$46oZgIiNjIAoFKR71Ca9wz$BwOK1/IFhRncJAwz8PyUQbY0hmZCRserE55oOJc4T30=', 'admin', TRUE),
+('Maria', 'Lopez', 'pbkdf2_sha256$600000$46oZgIiNjIAoFKR71Ca9wz$BwOK1/IFhRncJAwz8PyUQbY0hmZCRserE55oOJc4T30=', 'director', TRUE),
+('Juan', 'Torres', 'pbkdf2_sha256$600000$46oZgIiNjIAoFKR71Ca9wz$BwOK1/IFhRncJAwz8PyUQbY0hmZCRserE55oOJc4T30=', 'profesor', TRUE),
+('Ana', 'Garcia', 'pbkdf2_sha256$600000$46oZgIiNjIAoFKR71Ca9wz$BwOK1/IFhRncJAwz8PyUQbY0hmZCRserE55oOJc4T30=', 'profesor', TRUE),
+('Luis', 'Martinez', 'pbkdf2_sha256$600000$46oZgIiNjIAoFKR71Ca9wz$BwOK1/IFhRncJAwz8PyUQbY0hmZCRserE55oOJc4T30=', 'client', TRUE),
+('Sofia', 'Herrera', 'pbkdf2_sha256$600000$46oZgIiNjIAoFKR71Ca9wz$BwOK1/IFhRncJAwz8PyUQbY0hmZCRserE55oOJc4T30=', 'client', FALSE);
 
 -- Emails
 INSERT INTO user_email (u_id, email) VALUES

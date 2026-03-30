@@ -7,6 +7,7 @@ CREATE TABLE users (
     creation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, --- creation date
     u_type VARCHAR(25) CHECK (u_type IN ('admin', 'director', 'profesor', 'client')),
     is_active BOOLEAN DEFAULT TRUE,
+    last_login TIMESTAMP NULL,
     validated BOOLEAN DEFAULT FALSE
 );
 
