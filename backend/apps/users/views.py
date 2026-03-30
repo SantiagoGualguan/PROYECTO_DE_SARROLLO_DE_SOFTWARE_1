@@ -1,6 +1,8 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import CustomUser
 from .serializers import CustomUserSerializer
@@ -17,9 +19,47 @@ class AuthViewSet(viewsets.ViewSet):
     - POST /api/auth/reset-password/<token>/
     """
 
-    @action(detail=False, methods=["post"])
+    @action(detail=False, methods=["post"], permission_classes=[AllowAny])
     def login(self, request):
-        raise NotImplementedError("TODO: implementar login")
+        identifier = (
+            request.data.get("identifier")
+            or request.data.get("email")
+            or request.data.get("phone")
+        )
+        password = request.data.get("password")
+
+        if not identifier or not password:
+            return Response(
+                {"detail": "los identificadores (correo o telefono) y la contraseña son requeridos"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = CustomUser.objects.authenticate_by_identifier(identifier, password)
+        if not user:
+            return Response(
+                {"detail": "Credenciales inválidas"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+        if not user.is_active:
+            return Response(
+                {"detail": "El usuario está inactivo"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        refresh = RefreshToken.for_user(user)
+        return Response(
+            {
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "user": {
+                    "id": user.id,
+                    "first_name": user.u_name,
+                    "last_name": user.last_name,
+                    "role": user.u_type,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
 
     @action(detail=False, methods=["post"])
     def register(self, request):
