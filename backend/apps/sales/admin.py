@@ -1,22 +1,22 @@
 from django.contrib import admin
 
-from .models import Venta, ItemVenta, DatosFacturacion
+from .models import Bill, Purchase, UserCoreography
 
 
-@admin.register(Venta)
-class VentaAdmin(admin.ModelAdmin):
+@admin.register(Purchase)
+class PurchaseAdmin(admin.ModelAdmin):
     # TODO: configurar list_display, search_fields, etc.
     pass
 
 
-@admin.register(ItemVenta)
-class ItemVentaAdmin(admin.ModelAdmin):
+@admin.register(UserCoreography)
+class UserCoreographyAdmin(admin.ModelAdmin):
     # TODO: configurar list_display, search_fields, etc.
     pass
 
 
-@admin.register(DatosFacturacion)
-class DatosFacturacionAdmin(admin.ModelAdmin):
+@admin.register(Bill)
+class BillAdmin(admin.ModelAdmin):
     # TODO: configurar list_display, search_fields, etc.
     pass
 

@@ -1,28 +1,28 @@
 from rest_framework import serializers
 
-from .models import Venta, ItemVenta, DatosFacturacion
+from .models import Bill, Purchase, UserCoreography
 
 
-class ItemVentaSerializer(serializers.ModelSerializer):
-    # TODO: ajustar campos y validaciones de ItemVenta
+class UserCoreographySerializer(serializers.ModelSerializer):
+    # TODO: ajustar campos y validaciones de UserCoreography
 
     class Meta:
-        model = ItemVenta
+        model = UserCoreography
         fields = "__all__"
 
 
-class DatosFacturacionSerializer(serializers.ModelSerializer):
-    # TODO: ajustar campos y validaciones de DatosFacturacion
+class BillSerializer(serializers.ModelSerializer):
+    # TODO: ajustar campos y validaciones de Bill
 
     class Meta:
-        model = DatosFacturacion
+        model = Bill
         fields = "__all__"
 
 
-class VentaSerializer(serializers.ModelSerializer):
+class PurchaseSerializer(serializers.ModelSerializer):
     # TODO: incluir items y datos de facturación si es necesario
 
     class Meta:
-        model = Venta
+        model = Purchase
         fields = "__all__"
 

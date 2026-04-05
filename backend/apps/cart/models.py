@@ -1,28 +1,55 @@
 from django.db import models
 
 from apps.users.models import CustomUser
-from apps.choreographies.models import Coreografia
+from apps.choreographies.models import Coreography
 
 
-class Carrito(models.Model):
-    cliente = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-    activo = models.BooleanField(default=True)  # False cuando se convierte en venta
+class ShoppingCart(models.Model):
+    STATUS_CHOICES = [
+        ("active", "activo"),
+        ("completed", "completado"),
+        ("cancelled", "cancelado"),
+    ]
 
-    # TODO: agregar métodos para totalizar y gestionar el carrito
-
-
-class ItemCarrito(models.Model):
-    carrito = models.ForeignKey(
-        Carrito, related_name="items", on_delete=models.CASCADE
+    cart_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(
+        CustomUser,
+        db_column="u_id",
+        related_name="shopping_carts",
+        on_delete=models.DO_NOTHING,
     )
-    coreografia = models.ForeignKey(Coreografia, on_delete=models.PROTECT)
-    precio_unitario = models.DecimalField(
-        max_digits=10, decimal_places=2
-    )  # precio al agregar
+    s_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="active")
+    creation_date = models.DateTimeField(db_column="creation_date", null=True, blank=True)
 
     class Meta:
-        unique_together = [["carrito", "coreografia"]]
+        managed = False
+        db_table = "shopping_cart"
 
-    # TODO: agregar métodos auxiliares si se requieren
+    def __str__(self):
+        return f"Cart {self.cart_id} ({self.s_status})"
+
+
+class CartItem(models.Model):
+    cart_item_id = models.AutoField(primary_key=True)
+    cart = models.ForeignKey(
+        ShoppingCart,
+        db_column="cart_id",
+        related_name="items",
+        on_delete=models.DO_NOTHING,
+    )
+    coreography = models.ForeignKey(
+        Coreography,
+        db_column="coreography_id",
+        related_name="cart_items",
+        on_delete=models.DO_NOTHING,
+    )
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    creation_date = models.DateTimeField(db_column="creation_date", null=True, blank=True)
+
+    class Meta:
+        managed = False
+        db_table = "cart_item"
+
+    def __str__(self):
+        return f"CartItem {self.cart_item_id}"
 

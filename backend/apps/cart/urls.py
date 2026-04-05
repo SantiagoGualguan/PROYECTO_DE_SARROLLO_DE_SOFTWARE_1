@@ -1,10 +1,10 @@
 from django.urls import path
 
-from .views import CarritoViewSet, ItemCarritoViewSet
+from .views import ShoppingCartViewSet, CartItemViewSet
 
-carrito_list = CarritoViewSet.as_view({"get": "list"})
-item_create = ItemCarritoViewSet.as_view({"post": "create"})
-item_delete = ItemCarritoViewSet.as_view({"delete": "destroy"})
+carrito_list = ShoppingCartViewSet.as_view({"get": "list"})
+item_create = CartItemViewSet.as_view({"post": "create"})
+item_delete = CartItemViewSet.as_view({"delete": "destroy"})
 
 urlpatterns = [
     # CART: GET /api/cart/
