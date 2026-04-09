@@ -1,5 +1,7 @@
-from django.contrib.auth.hashers import make_password
+﻿from django.contrib.auth.hashers import make_password
 from django.db import connection, transaction
+from django.db.models import Q, Value
+from django.db.models.functions import Concat
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
@@ -10,15 +12,19 @@ from .models import CustomUser, UserEmail, UserPhoneNumber
 from .permissions import IsAdmin
 from .serializers import (
     CustomUserSerializer,
+    INTERNAL_ALLOWED_ROLES,
     InternalUserCreateSerializer,
+    InternalUserListSerializer,
     RegisterSerializer,
+    normalize_internal_role,
 )
 
 INTERNAL_ROLE_MESSAGES = {
-    "admin": "El usuario administrador se registr\u00f3 con \u00e9xito.",
-    "director": "El usuario director se registr\u00f3 con \u00e9xito.",
-    "profesor": "El usuario profesor bailar\u00edn se registr\u00f3 con \u00e9xito.",
+    "admin": "El usuario administrador se registró con éxito.",
+    "director": "El usuario director se registró con éxito.",
+    "profesor": "El usuario profesor bailarín se registró con éxito.",
 }
+
 SQL_CREATION_ERROR = (
     "No se pudo crear el usuario con la funcion SQL. "
     "Verifica que 02_functions.sql este aplicado en la base de datos."
@@ -116,20 +122,13 @@ def _handle_creation_error(exc):
 
 class AuthViewSet(viewsets.ViewSet):
     """
-    ViewSet para autenticaci\u00f3n:
+    ViewSet para autenticacion:
     - POST /api/auth/login/
     - POST /api/auth/register/
     - POST /api/auth/logout/
     - POST /api/auth/token/refresh/
     - POST /api/auth/recover-password/
     - POST /api/auth/reset-password/<token>/
-    """
-    """
-    each action uses the base name 'auth' for the urls
-    and adds the specific action name to the url, for example:
-    - POST /api/auth/login/ -> calls the login method
-    auth = base and login = action name, so the url is /api/auth/login/
-     this allows us to have a clean and organized url structure for authentication related actions.
     """
 
     queryset = CustomUser.objects.all()
@@ -146,7 +145,7 @@ class AuthViewSet(viewsets.ViewSet):
         if not identifier or not password:
             return Response(
                 {
-                    "detail": "los identificadores (correo o telefono) y la contrase\u00f1a son requeridos"
+                    "detail": "los identificadores (correo o telefono) y la contrasena son requeridos"
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -154,12 +153,12 @@ class AuthViewSet(viewsets.ViewSet):
         user = CustomUser.objects.authenticate_by_identifier(identifier, password)
         if not user:
             return Response(
-                {"detail": "Credenciales inv\u00e1lidas"},
+                {"detail": "Credenciales invalidas"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
         if not user.is_active:
             return Response(
-                {"detail": "El usuario est\u00e1 inactivo"},
+                {"detail": "El usuario esta inactivo"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -174,6 +173,7 @@ class AuthViewSet(viewsets.ViewSet):
         email = data["email"].lower()
         phone = data["phone"]
         role = data.get("role", "client")
+
         try:
             user = _create_user_with_sql(
                 first_name=data["first_name"],
@@ -214,7 +214,6 @@ class InternalUserViewSet(viewsets.ModelViewSet):
     USERS (interno):
     - GET/POST /api/users/internal/
     - GET/PUT/DELETE /api/users/internal/<id>/
-    Filtros: ?rol=profesor&activo=true
     """
 
     queryset = CustomUser.objects.all()
@@ -222,12 +221,65 @@ class InternalUserViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdmin]
 
     def get_serializer_class(self):
+        if self.action == "list":
+            return InternalUserListSerializer
         if self.action == "create":
             return InternalUserCreateSerializer
         return CustomUserSerializer
 
     def list(self, request, *args, **kwargs):
-        raise NotImplementedError("TODO: implementar listado de usuarios internos")
+        queryset = (
+            CustomUser.objects.filter(u_type__in=INTERNAL_ALLOWED_ROLES)
+            .prefetch_related("emails", "phone_numbers")
+            .order_by("id")
+        )
+
+        role_filter = request.query_params.get("rol")
+        if role_filter is not None:
+            cleaned_role_filter = role_filter.strip()
+            if not cleaned_role_filter:
+                return Response(
+                    {"detail": "El parametro rol no puede estar vacio."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            canonical_role = normalize_internal_role(cleaned_role_filter)
+            if canonical_role not in INTERNAL_ALLOWED_ROLES:
+                return Response(
+                    {
+                        "detail": (
+                            "Rol invalido. Usa admin, director o profesor "
+                            "(profesor bailarin tambien es valido)."
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            queryset = queryset.filter(u_type=canonical_role)
+
+        search_value = request.query_params.get("search")
+        if search_value is not None:
+            cleaned_search = search_value.strip()
+            if cleaned_search:
+                queryset = (
+                    queryset.annotate(full_name=Concat("u_name", Value(" "), "last_name"))
+                    .filter(
+                        Q(full_name__icontains=cleaned_search)
+                        | Q(u_name__icontains=cleaned_search)
+                        | Q(last_name__icontains=cleaned_search)
+                        | Q(phone_numbers__p_number__icontains=cleaned_search)
+                    )
+                    .distinct()
+                )
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(
+            {
+                "count": len(serializer.data),
+                "results": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     def create(self, request, *args, **kwargs):
         serializer = InternalUserCreateSerializer(data=request.data)
@@ -275,10 +327,10 @@ class InternalUserViewSet(viewsets.ModelViewSet):
         raise NotImplementedError("TODO: implementar detalle de usuario interno")
 
     def update(self, request, *args, **kwargs):
-        raise NotImplementedError("TODO: implementar actualizaci\u00f3n de usuario interno")
+        raise NotImplementedError("TODO: implementar actualizacion de usuario interno")
 
     def destroy(self, request, *args, **kwargs):
-        raise NotImplementedError("TODO: implementar eliminaci\u00f3n de usuario interno")
+        raise NotImplementedError("TODO: implementar eliminacion de usuario interno")
 
 
 class ClientProfileViewSet(viewsets.ViewSet):

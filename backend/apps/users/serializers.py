@@ -1,9 +1,20 @@
-from rest_framework import serializers
+﻿from rest_framework import serializers
 
 from .models import CustomUser
 
 SYSTEM_ROLE_VALUES = [role for role, _ in CustomUser.ROLE_CHOICES]
 INTERNAL_ALLOWED_ROLES = {"admin", "director", "profesor"}
+
+
+def normalize_internal_role(role_value):
+    normalized_role = role_value.strip().lower()
+
+    if normalized_role == "administrador":
+        return "admin"
+    if normalized_role in {"profesor bailarín", "profesor bailarin"}:
+        return "profesor"
+
+    return normalized_role
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -13,8 +24,10 @@ class CustomUserSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = "__all__"
 
-"""guarantees that the system only recieves valid data ."""
+
 class RegisterSerializer(serializers.Serializer):
+    """Validates public register payload."""
+
     first_name = serializers.CharField(max_length=50)
     last_name = serializers.CharField(max_length=50)
     password = serializers.CharField(write_only=True, min_length=8)
@@ -66,9 +79,7 @@ class InternalUserCreateSerializer(serializers.Serializer):
         return cleaned_value
 
     def validate_rol(self, value):
-        normalized_role = value.strip().lower()
-        if normalized_role in {"profesor bailar\u00edn", "profesor bailarin"}:
-            normalized_role = "profesor"
+        normalized_role = normalize_internal_role(value)
 
         if normalized_role not in SYSTEM_ROLE_VALUES:
             raise serializers.ValidationError(
@@ -81,3 +92,33 @@ class InternalUserCreateSerializer(serializers.Serializer):
 
         return normalized_role
 
+
+class InternalUserListSerializer(serializers.ModelSerializer):
+    nombre = serializers.SerializerMethodField()
+    correo = serializers.SerializerMethodField()
+    identificacion = serializers.SerializerMethodField()
+    rol = serializers.CharField(source="u_type")
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "id",
+            "nombre",
+            "correo",
+            "identificacion",
+            "rol",
+            "is_active",
+            "validated",
+            "creation_date",
+        ]
+
+    def get_nombre(self, obj):
+        return f"{obj.u_name} {obj.last_name}".strip()
+
+    def get_correo(self, obj):
+        first_email = next(iter(obj.emails.all()), None)
+        return first_email.email if first_email else None
+
+    def get_identificacion(self, obj):
+        first_phone = next(iter(obj.phone_numbers.all()), None)
+        return first_phone.p_number if first_phone else None
