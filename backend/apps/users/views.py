@@ -330,7 +330,34 @@ class InternalUserViewSet(viewsets.ModelViewSet):
         raise NotImplementedError("TODO: implementar actualizacion de usuario interno")
 
     def destroy(self, request, *args, **kwargs):
-        raise NotImplementedError("TODO: implementar eliminacion de usuario interno")
+        user_id = kwargs.get("pk")
+        user = CustomUser.objects.filter(pk=user_id).first()
+
+        if not user:
+            return Response(
+                {"detail": "El usuario interno no existe."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if user.u_type not in INTERNAL_ALLOWED_ROLES:
+            return Response(
+                {"detail": "Solo se pueden eliminar usuarios internos."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not user.is_active:
+            return Response(
+                {"detail": "El usuario ya estaba eliminado o inactivo."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        with transaction.atomic():
+            user.delete()  # soft delete: marca is_active=False
+
+        return Response(
+            {"detail": "El usuario fue eliminado con éxito."},
+            status=status.HTTP_200_OK,
+        )
 
 
 class ClientProfileViewSet(viewsets.ViewSet):
