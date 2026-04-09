@@ -15,6 +15,7 @@ from .serializers import (
     INTERNAL_ALLOWED_ROLES,
     InternalUserCreateSerializer,
     InternalUserListSerializer,
+    InternalUserUpdateSerializer,
     RegisterSerializer,
     normalize_internal_role,
 )
@@ -225,6 +226,8 @@ class InternalUserViewSet(viewsets.ModelViewSet):
             return InternalUserListSerializer
         if self.action == "create":
             return InternalUserCreateSerializer
+        if self.action in {"update", "partial_update"}:
+            return InternalUserUpdateSerializer
         return CustomUserSerializer
 
     def list(self, request, *args, **kwargs):
@@ -327,7 +330,99 @@ class InternalUserViewSet(viewsets.ModelViewSet):
         raise NotImplementedError("TODO: implementar detalle de usuario interno")
 
     def update(self, request, *args, **kwargs):
-        raise NotImplementedError("TODO: implementar actualizacion de usuario interno")
+        user_id = kwargs.get("pk")
+        partial = kwargs.pop("partial", False)
+
+        user = (
+            CustomUser.objects.filter(id=user_id)
+            .prefetch_related("emails", "phone_numbers")
+            .first()
+        )
+        if not user:
+            return Response(
+                {"detail": "El usuario no existe."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if user.u_type not in INTERNAL_ALLOWED_ROLES:
+            return Response(
+                {
+                    "detail": (
+                        "Solo se pueden actualizar usuarios internos "
+                        "(admin, director, profesor)."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = self.get_serializer(
+            data=request.data,
+            context={"user": user},
+            partial=partial,
+        )
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        user_fields_to_update = []
+        if "nombre" in data:
+            first_name, last_name = _split_full_name(data["nombre"])
+            user.u_name = first_name
+            user.last_name = last_name
+            user_fields_to_update.extend(["u_name", "last_name"])
+
+        if "rol" in data:
+            user.u_type = data["rol"]
+            user_fields_to_update.append("u_type")
+
+        if "contrasena" in data:
+            user.password = make_password(data["contrasena"])
+            user_fields_to_update.append("password")
+
+        if "is_active" in data:
+            user.is_active = data["is_active"]
+            user_fields_to_update.append("is_active")
+
+        if "validated" in data:
+            user.validated = data["validated"]
+            user_fields_to_update.append("validated")
+
+        with transaction.atomic():
+            if user_fields_to_update:
+                user.save(update_fields=list(set(user_fields_to_update)))
+
+            if "correo" in data:
+                email_relation = user.emails.order_by("email_id").first()
+                if email_relation:
+                    email_relation.email = data["correo"]
+                    email_relation.save(update_fields=["email"])
+                else:
+                    UserEmail.objects.create(user=user, email=data["correo"])
+
+            if "identificacion" in data:
+                phone_relation = user.phone_numbers.order_by("p_number_id").first()
+                if phone_relation:
+                    phone_relation.p_number = data["identificacion"]
+                    phone_relation.save(update_fields=["p_number"])
+                else:
+                    UserPhoneNumber.objects.create(
+                        user=user,
+                        p_number=data["identificacion"],
+                    )
+
+        updated_user = (
+            CustomUser.objects.filter(id=user.id)
+            .prefetch_related("emails", "phone_numbers")
+            .first()
+        )
+        response_user = InternalUserListSerializer(updated_user).data
+
+        return Response(
+            {
+                "detail": "Los datos del usuario fueron actualizados con éxito.",
+                "user": response_user,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     def destroy(self, request, *args, **kwargs):
         user_id = kwargs.get("pk")

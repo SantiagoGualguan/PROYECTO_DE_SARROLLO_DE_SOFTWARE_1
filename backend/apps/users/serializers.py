@@ -1,6 +1,6 @@
 ﻿from rest_framework import serializers
 
-from .models import CustomUser
+from .models import CustomUser, UserEmail, UserPhoneNumber
 
 SYSTEM_ROLE_VALUES = [role for role, _ in CustomUser.ROLE_CHOICES]
 INTERNAL_ALLOWED_ROLES = {"admin", "director", "profesor"}
@@ -122,3 +122,69 @@ class InternalUserListSerializer(serializers.ModelSerializer):
     def get_identificacion(self, obj):
         first_phone = next(iter(obj.phone_numbers.all()), None)
         return first_phone.p_number if first_phone else None
+
+
+class InternalUserUpdateSerializer(serializers.Serializer):
+    nombre = serializers.CharField(max_length=100, required=False)
+    identificacion = serializers.CharField(max_length=15, required=False)
+    correo = serializers.EmailField(required=False)
+    rol = serializers.CharField(max_length=30, required=False)
+    contrasena = serializers.CharField(write_only=True, min_length=8, required=False)
+    is_active = serializers.BooleanField(required=False)
+    validated = serializers.BooleanField(required=False)
+
+    def validate_nombre(self, value):
+        cleaned_value = value.strip()
+        if not cleaned_value:
+            raise serializers.ValidationError("El nombre es obligatorio.")
+        return cleaned_value
+
+    def validate_identificacion(self, value):
+        cleaned_value = value.strip()
+        if not cleaned_value:
+            raise serializers.ValidationError("La identificacion es obligatoria.")
+        if len(cleaned_value) > 15:
+            raise serializers.ValidationError(
+                "La identificacion no puede superar 15 caracteres."
+            )
+        return cleaned_value
+
+    def validate_correo(self, value):
+        return value.strip().lower()
+
+    def validate_rol(self, value):
+        normalized_role = normalize_internal_role(value)
+        if normalized_role not in INTERNAL_ALLOWED_ROLES:
+            raise serializers.ValidationError(
+                "Rol invalido. Solo se permite admin, director o profesor bailarin."
+            )
+        return normalized_role
+
+    def validate(self, attrs):
+        if not attrs:
+            raise serializers.ValidationError(
+                {"detail": "Debe enviar al menos un campo valido para actualizar."}
+            )
+
+        user = self.context.get("user")
+        correo = attrs.get("correo")
+        if correo:
+            existing_email = UserEmail.objects.filter(email__iexact=correo)
+            if user is not None:
+                existing_email = existing_email.exclude(user=user)
+            if existing_email.exists():
+                raise serializers.ValidationError(
+                    {"correo": "El correo ya esta registrado."}
+                )
+
+        identificacion = attrs.get("identificacion")
+        if identificacion:
+            existing_phone = UserPhoneNumber.objects.filter(p_number=identificacion)
+            if user is not None:
+                existing_phone = existing_phone.exclude(user=user)
+            if existing_phone.exists():
+                raise serializers.ValidationError(
+                    {"identificacion": "La identificacion ya esta registrada."}
+                )
+
+        return attrs
