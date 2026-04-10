@@ -1,6 +1,7 @@
 import React from "react";
 import Button from "../../components/ui/Button/Button.jsx";
 import NavBar from "../../components/ui/NavBar/NavBar.jsx";
+import SearchBar from "../../components/ui/SearchBar/SearchBar.jsx";
 
 const LandingPage = () => {
   return (
@@ -19,7 +20,9 @@ const LandingPage = () => {
           { label: "Dasboard", to: "/LandingPage" },
         ]}
       />
-      {/* TODO: implementar landing pública de DanceLearn Academy */}
+      <div style={{ backgroundColor: "#6c86fd", padding: "10px" }}>
+        <SearchBar onSearch={""} />
+      </div>
     </div>
   );
 };
