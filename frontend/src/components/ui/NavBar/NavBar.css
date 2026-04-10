@@ -1,0 +1,15 @@
+.nav-item {
+  font-family: var(--font-body);
+  font-size: var(--font-size-md);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  padding-bottom: var(--space-xs);
+  border-bottom: 4px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.nav-item-active,
+.nav-item:hover {
+  font-weight: 600;
+  border-bottom: 3px solid var(--color-text-primary);
+}
