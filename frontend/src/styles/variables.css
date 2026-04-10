@@ -1,0 +1,54 @@
+/*
+  Global design variables: colors, fonts, sizes, and spacing
+  All app components must use these variables
+*/
+
+:root {
+  /* ── Paleta de colores ── */
+  --color-primary: #e5598f;
+  --color-pink-light: #ffabcb;
+  --color-peach: #ffdfc8;
+  --color-salmon: #ff9b7d;
+  --color-orange: #ff6a3f;
+
+  /* ── Colores de texto ── */
+  --color-text-primary: #000000;
+  --color-text-on-button: #ffffff;
+  --color-text-disabled: #1d1b20;
+
+  /* ── Colores de estado ── */
+  --color-disabled-bg: rgba(29, 27, 32, 0.1);
+  --color-hover-overlay: rgba(255, 255, 255, 0.08);
+  --color-pressed-overlay: rgba(255, 255, 255, 0.1);
+
+  /* ── Fuentes ── */
+  --font-logo: "Alegreya", Helvetica, serif;
+  --font-body: "Roboto", Helvetica, sans-serif;
+  --font-button: "Roboto", Helvetica, sans-serif;
+
+  /* ── Tamaños de fuente ── */
+  --font-size-xs: 14px;
+  --font-size-sm: 16px;
+  --font-size-md: 20px;
+  --font-size-lg: 24px;
+  --font-size-xl: 30px;
+
+  /* ── Espaciado ── */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 40px;
+
+  /* ── Bordes redondeados ── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* ── Tamaño de íconos ── */
+  --icon-sm: 20px;
+  --icon-md: 24px;
+  --icon-lg: 32px;
+}
