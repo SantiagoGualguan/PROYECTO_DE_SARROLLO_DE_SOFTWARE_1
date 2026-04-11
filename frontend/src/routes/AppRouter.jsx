@@ -1,34 +1,34 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 
-import LandingPage from '../pages/public/LandingPage';
-import CatalogPublic from '../pages/public/CatalogPublic';
-import NotFound from '../pages/public/NotFound';
+import LandingPage from "../pages/public/LandingPage/LandingPage";
+import CatalogPublic from "../pages/public/CatalogPublic";
+import NotFound from "../pages/public/NotFound";
 
-import Login from '../pages/auth/Login';
-import Register from '../pages/auth/Register';
-import RecoverPassword from '../pages/auth/RecoverPassword';
+import Login from "../pages/auth/Login";
+import Register from "../pages/auth/Register";
+import RecoverPassword from "../pages/auth/RecoverPassword";
 
-import AdminDashboard from '../pages/dashboard/AdminDashboard';
-import DirectorDashboard from '../pages/dashboard/DirectorDashboard';
-import ProfesorDashboard from '../pages/dashboard/ProfesorDashboard';
-import ClienteDashboard from '../pages/dashboard/ClienteDashboard';
+import AdminDashboard from "../pages/dashboard/AdminDashboard";
+import DirectorDashboard from "../pages/dashboard/DirectorDashboard";
+import ProfesorDashboard from "../pages/dashboard/ProfesorDashboard";
+import ClienteDashboard from "../pages/dashboard/ClienteDashboard";
 
-import UserList from '../pages/users/UserList';
-import UserForm from '../pages/users/UserForm';
-import UserProfile from '../pages/users/UserProfile';
+import UserList from "../pages/users/UserList";
+import UserForm from "../pages/users/UserForm";
+import UserProfile from "../pages/users/UserProfile";
 
-import ChoreographyList from '../pages/choreographies/ChoreographyList';
-import ChoreographyDetail from '../pages/choreographies/ChoreographyDetail';
-import ChoreographyForm from '../pages/choreographies/ChoreographyForm';
+import ChoreographyList from "../pages/choreographies/ChoreographyList";
+import ChoreographyDetail from "../pages/choreographies/ChoreographyDetail";
+import ChoreographyForm from "../pages/choreographies/ChoreographyForm";
 
-import CartPage from '../pages/cart/CartPage';
+import CartPage from "../pages/cart/CartPage";
 
-import CheckoutWizard from '../pages/sales/CheckoutWizard';
-import SaleConfirmation from '../pages/sales/SaleConfirmation';
-import PurchaseHistory from '../pages/sales/PurchaseHistory';
+import CheckoutWizard from "../pages/sales/CheckoutWizard";
+import SaleConfirmation from "../pages/sales/SaleConfirmation";
+import PurchaseHistory from "../pages/sales/PurchaseHistory";
 
-import ProtectedRoute from '../components/common/ProtectedRoute';
+import ProtectedRoute from "../components/common/ProtectedRoute";
 
 // RUTAS PÚBLICAS (sin auth):
 // / → LandingPage
@@ -72,7 +72,7 @@ const AppRouter = () => {
       <Route
         path="/admin/usuarios"
         element={
-          <ProtectedRoute allowedRoles={['admin', 'director']}>
+          <ProtectedRoute allowedRoles={["admin", "director"]}>
             <UserList />
           </ProtectedRoute>
         }
@@ -80,7 +80,7 @@ const AppRouter = () => {
       <Route
         path="/admin/usuarios/new"
         element={
-          <ProtectedRoute allowedRoles={['admin', 'director']}>
+          <ProtectedRoute allowedRoles={["admin", "director"]}>
             <UserForm />
           </ProtectedRoute>
         }
@@ -90,7 +90,7 @@ const AppRouter = () => {
       <Route
         path="/coreografias"
         element={
-          <ProtectedRoute allowedRoles={['admin', 'director', 'profesor']}>
+          <ProtectedRoute allowedRoles={["admin", "director", "profesor"]}>
             <ChoreographyList />
           </ProtectedRoute>
         }
@@ -98,7 +98,7 @@ const AppRouter = () => {
       <Route
         path="/coreografias/new"
         element={
-          <ProtectedRoute allowedRoles={['admin', 'director', 'profesor']}>
+          <ProtectedRoute allowedRoles={["admin", "director", "profesor"]}>
             <ChoreographyForm />
           </ProtectedRoute>
         }
@@ -116,7 +116,7 @@ const AppRouter = () => {
       <Route
         path="/carrito"
         element={
-          <ProtectedRoute allowedRoles={['cliente']}>
+          <ProtectedRoute allowedRoles={["cliente"]}>
             <CartPage />
           </ProtectedRoute>
         }
@@ -124,7 +124,7 @@ const AppRouter = () => {
       <Route
         path="/checkout"
         element={
-          <ProtectedRoute allowedRoles={['cliente']}>
+          <ProtectedRoute allowedRoles={["cliente"]}>
             <CheckoutWizard />
           </ProtectedRoute>
         }
@@ -132,7 +132,7 @@ const AppRouter = () => {
       <Route
         path="/mis-compras"
         element={
-          <ProtectedRoute allowedRoles={['cliente']}>
+          <ProtectedRoute allowedRoles={["cliente"]}>
             <PurchaseHistory />
           </ProtectedRoute>
         }
@@ -142,7 +142,7 @@ const AppRouter = () => {
       <Route
         path="/perfil"
         element={
-          <ProtectedRoute allowedRoles={['cliente']}>
+          <ProtectedRoute allowedRoles={["cliente"]}>
             <UserProfile />
           </ProtectedRoute>
         }
@@ -152,7 +152,7 @@ const AppRouter = () => {
       <Route
         path="/dashboard/admin"
         element={
-          <ProtectedRoute allowedRoles={['admin', 'director']}>
+          <ProtectedRoute allowedRoles={["admin", "director"]}>
             <AdminDashboard />
           </ProtectedRoute>
         }
@@ -160,7 +160,7 @@ const AppRouter = () => {
       <Route
         path="/dashboard/director"
         element={
-          <ProtectedRoute allowedRoles={['director']}>
+          <ProtectedRoute allowedRoles={["director"]}>
             <DirectorDashboard />
           </ProtectedRoute>
         }
@@ -168,7 +168,7 @@ const AppRouter = () => {
       <Route
         path="/dashboard/profesor"
         element={
-          <ProtectedRoute allowedRoles={['profesor']}>
+          <ProtectedRoute allowedRoles={["profesor"]}>
             <ProfesorDashboard />
           </ProtectedRoute>
         }
@@ -176,7 +176,7 @@ const AppRouter = () => {
       <Route
         path="/dashboard/cliente"
         element={
-          <ProtectedRoute allowedRoles={['cliente']}>
+          <ProtectedRoute allowedRoles={["cliente"]}>
             <ClienteDashboard />
           </ProtectedRoute>
         }
@@ -189,4 +189,3 @@ const AppRouter = () => {
 };
 
 export default AppRouter;
-

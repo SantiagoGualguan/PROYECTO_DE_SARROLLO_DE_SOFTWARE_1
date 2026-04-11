@@ -1,16 +1,18 @@
 import React from "react";
-import Button from "../../components/ui/Button/Button.jsx";
-import NavBar from "../../components/ui/NavBar/NavBar.jsx";
-import SearchBar from "../../components/ui/SearchBar/SearchBar.jsx";
-import Header from "../../components/layout/Header/Header.jsx";
-
+import Button from "../../../components/ui/Button/Button.jsx";
+import NavBar from "../../../components/ui/NavBar/NavBar.jsx";
+import SearchBar from "../../../components/ui/SearchBar/SearchBar.jsx";
+import Header from "../../../components/layout/Header/Header.jsx";
+import HeroSection from "./sections/HeroSection.jsx";
+import DescriptionSection from "./sections/DescriptionSection.jsx";
+import FeatureSection from "./sections/FeaturesSection.jsx";
 import { useNavigate } from "react-router-dom";
 
 const LandingPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div>
+    <div style={{ gap: "30px", display: "flex", flexDirection: "column" }}>
       <Header
         showMenu={false}
         showFullLogo={true}
@@ -38,6 +40,9 @@ const LandingPage = () => {
           </>
         }
       />
+      <HeroSection />
+      <DescriptionSection />
+      <FeatureSection />
     </div>
   );
 };
