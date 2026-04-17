@@ -6,6 +6,7 @@ import Header from "../../../components/layout/Header/Header.jsx";
 import HeroSection from "./sections/HeroSection.jsx";
 import DescriptionSection from "./sections/DescriptionSection.jsx";
 import FeatureSection from "./sections/FeaturesSection.jsx";
+import PreviewSection from "./sections/PreviewSection.jsx";
 import { useNavigate } from "react-router-dom";
 
 const LandingPage = () => {
@@ -43,6 +44,7 @@ const LandingPage = () => {
       <HeroSection />
       <DescriptionSection />
       <FeatureSection />
+      <PreviewSection />
     </div>
   );
 };
