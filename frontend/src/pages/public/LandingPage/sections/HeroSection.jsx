@@ -29,7 +29,7 @@ const HeroSection = () => {
               variant="filled"
               size="large"
               color="var(--color-orange)"
-              onClick="() => {}"
+              onClick={() => {}}
             />
           </div>
         </div>
