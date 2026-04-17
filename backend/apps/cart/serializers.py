@@ -1,20 +1,20 @@
 from rest_framework import serializers
 
-from .models import Carrito, ItemCarrito
+from .models import ShoppingCart, CartItem
 
 
-class ItemCarritoSerializer(serializers.ModelSerializer):
-    # TODO: ajustar campos y validaciones de ItemCarrito
+class CartItemSerializer(serializers.ModelSerializer):
+    # TODO: ajustar campos y validaciones de CartItem
 
     class Meta:
-        model = ItemCarrito
+        model = CartItem
         fields = "__all__"
 
 
-class CarritoSerializer(serializers.ModelSerializer):
+class ShoppingCartSerializer(serializers.ModelSerializer):
     # TODO: incluir items del carrito si es necesario
 
     class Meta:
-        model = Carrito
+        model = ShoppingCart
         fields = "__all__"
 

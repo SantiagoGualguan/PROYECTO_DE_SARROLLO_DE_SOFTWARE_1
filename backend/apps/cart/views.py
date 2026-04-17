@@ -1,21 +1,22 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 
-from .models import Carrito, ItemCarrito
-from .serializers import CarritoSerializer, ItemCarritoSerializer
+from .models import ShoppingCart, CartItem
+from .serializers import ShoppingCartSerializer, CartItemSerializer
 
 
-class CarritoViewSet(viewsets.ViewSet):
+class ShoppingCartViewSet(viewsets.ViewSet):
     """
     CART:
     - GET /api/cart/  # carrito activo
     """
 
+
     def list(self, request):
         raise NotImplementedError("TODO: obtener carrito activo del cliente")
 
 
-class ItemCarritoViewSet(viewsets.ViewSet):
+class CartItemViewSet(viewsets.ViewSet):
     """
     CART ITEMS:
     - POST /api/cart/items/        # agregar item

@@ -1,11 +1,11 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 
-from .models import Coreografia, VideoClip
-from .serializers import CoreografiaSerializer, VideoClipSerializer
+from .models import Coreography, Video
+from .serializers import CoreographySerializer, VideoSerializer
 
 
-class CoreografiaViewSet(viewsets.ModelViewSet):
+class CoreographyViewSet(viewsets.ModelViewSet):
     """
     CHOREOGRAPHIES:
     - GET/POST /api/choreographies/
@@ -14,8 +14,8 @@ class CoreografiaViewSet(viewsets.ModelViewSet):
     # Filtros: ?genero=salsa&nivel=basico&profesor=<id>
     """
 
-    queryset = Coreografia.objects.all()
-    serializer_class = CoreografiaSerializer
+    queryset = Coreography.objects.all()
+    serializer_class = CoreographySerializer
 
     def list(self, request, *args, **kwargs):
         raise NotImplementedError("TODO: implementar listado de coreografías")
@@ -37,14 +37,14 @@ class CoreografiaViewSet(viewsets.ModelViewSet):
         raise NotImplementedError("TODO: implementar coreografías más vendidas")
 
 
-class VideoClipViewSet(viewsets.ModelViewSet):
+class VideoViewSet(viewsets.ModelViewSet):
     """
     - GET /api/choreographies/<id>/videos/
     - POST /api/choreographies/<id>/videos/
     """
 
-    queryset = VideoClip.objects.all()
-    serializer_class = VideoClipSerializer
+    queryset = Video.objects.all()
+    serializer_class = VideoSerializer
 
     def list(self, request, *args, **kwargs):
         raise NotImplementedError("TODO: implementar listado de videoclips")

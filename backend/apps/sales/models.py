@@ -1,48 +1,91 @@
 from django.db import models
 
 from apps.users.models import CustomUser
-from apps.choreographies.models import Coreografia
+from apps.choreographies.models import Coreography
+from apps.cart.models import ShoppingCart
+"""
+models for the sales app contains the models related to 
+purchases, bills, and the relationship between users 
+and coreographies they have access to, after purchase"
+"""
 
-
-class Venta(models.Model):
-    ESTADO_CHOICES = [
-        ("pendiente", "Pendiente"),
-        ("completada", "Completada"),
-        ("cancelada", "Cancelada"),
-    ]
-
-    cliente = models.ForeignKey(CustomUser, on_delete=models.PROTECT)
-    fecha_venta = models.DateTimeField(auto_now_add=True)
-    total = models.DecimalField(max_digits=10, decimal_places=2)
-    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES)
-    numero_orden = models.CharField(
-        max_length=50, unique=True
-    )  # ej: ORD-2026-0001
-
-    # TODO: agregar lógica de generación de número de orden
-
-
-class ItemVenta(models.Model):
-    venta = models.ForeignKey(
-        Venta, related_name="items", on_delete=models.PROTECT
+"purchases table contains the purchases made by users, linked to a shopping cart and containing purchase details"
+class Purchase(models.Model):
+    purchase_id = models.AutoField(primary_key=True)
+    cart = models.ForeignKey(
+        ShoppingCart,
+        db_column="cart_id",
+        related_name="purchases",
+        on_delete=models.DO_NOTHING,
     )
-    coreografia = models.ForeignKey(Coreografia, on_delete=models.PROTECT)
-    precio = models.DecimalField(max_digits=10, decimal_places=2)
+    purchase_date = models.DateTimeField(db_column="purchase_date", null=True, blank=True)
+    transaction_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
 
-    # TODO: agregar métodos auxiliares si se requieren
+    class Meta:
+        managed = False 
+        db_table = "purchase"
+
+    def __str__(self):
+        return f"Purchase {self.purchase_id}"
+
+"user_coreography table contains the relationship between users and coreographies they have access to"
+class UserCoreography(models.Model):
+    user = models.ForeignKey(
+        CustomUser,
+        db_column="u_id",
+        related_name="coreographies",
+        on_delete=models.DO_NOTHING,
+    )
+    coreography = models.ForeignKey(
+        Coreography,
+        db_column="coreography_id",
+        related_name="users",
+        on_delete=models.DO_NOTHING,
+    )
+    purchase = models.ForeignKey(
+        Purchase,
+        db_column="purchase_id",
+        related_name="user_coreographies",
+        on_delete=models.DO_NOTHING,
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        managed = False
+        db_table = "user_coreography"
+        unique_together = [("user", "coreography")]
+
+    def __str__(self):
+        return f"{self.user_id} -> {self.coreography_id}"
 
 
-class DatosFacturacion(models.Model):
-    METODO_CHOICES = [
-        ("pse", "PSE"),
-        ("tarjeta", "Tarjeta de crédito/débito"),
+"bills table contains the bills generated for each purchase, with payment details"
+class Bill(models.Model):
+    PAYMENT_CHOICES = [
+        ("pse", "pse"),
+        ("card", "card"), #payment methods: PSE, card, etc.
     ]
 
-    venta = models.OneToOneField(Venta, on_delete=models.CASCADE)
-    nombre_factura = models.CharField(max_length=200)
-    email_factura = models.EmailField()
-    documento = models.CharField(max_length=20)  # cédula / NIT
-    metodo_pago = models.CharField(max_length=20, choices=METODO_CHOICES)
+    bill_id = models.AutoField(primary_key=True)
+    purchase = models.ForeignKey(
+        Purchase,
+        db_column="purchase_id",
+        related_name="bills",
+        on_delete=models.DO_NOTHING,
+    )
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(max_length=50, choices=PAYMENT_CHOICES)
+    creation_date = models.DateTimeField(db_column="creation_date", null=True, blank=True)
+    email_address = models.CharField(max_length=100)
+    titular_name = models.CharField(max_length=100)
+    document_number = models.CharField(max_length=50)
+    details = models.CharField(max_length=300, blank=True, null=True)
 
-    # El pago es SIMULADO — no integrar pasarela real
+    class Meta:
+        managed = False
+        db_table = "bill"
+
+    def __str__(self):
+        return f"Bill {self.bill_id}"
 

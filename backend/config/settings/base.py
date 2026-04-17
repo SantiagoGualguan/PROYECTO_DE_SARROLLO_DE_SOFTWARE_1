@@ -81,16 +81,26 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
 }
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'dancelearn_db',
-        'USER': 'dancelearn_user',
-        'PASSWORD': 'DanceLearn2026!',
-        'HOST': 'db',
-        'PORT': '5432',
+_DATABASE_URL = os.environ.get('DATABASE_URL')
+if _DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.parse(
+            _DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True,
+        )
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('POSTGRES_DB', 'dancelearn_db'),
+            'USER': os.environ.get('POSTGRES_USER', 'dancelearn_user'),
+            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'DanceLearn2026!'),
+            'HOST': os.environ.get('DB_HOST', 'db'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+        }
+    }
 
 LANGUAGE_CODE = 'es-co'
 
