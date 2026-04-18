@@ -8,6 +8,7 @@ import DescriptionSection from "./sections/DescriptionSection.jsx";
 import FeatureSection from "./sections/FeaturesSection.jsx";
 import PreviewSection from "./sections/PreviewSection.jsx";
 import GenresSection from "./sections/GenresSection.jsx";
+import TeacherSection from "./sections/TeacherSection.jsx";
 import { useNavigate } from "react-router-dom";
 
 const LandingPage = () => {
@@ -47,6 +48,7 @@ const LandingPage = () => {
       <FeatureSection />
       <PreviewSection />
       <GenresSection />
+      <TeacherSection />
     </div>
   );
 };
