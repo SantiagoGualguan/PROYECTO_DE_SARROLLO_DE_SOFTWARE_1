@@ -1,39 +1,20 @@
-version: '3.9'
 services:
-  db:
-    image: postgres:15
-    container_name: dancelearn_db
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports:
-      - '5432:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./database:/docker-entrypoint-initdb.d # mounts the SQL scripts for initialization (from the database directory)
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
-      interval: 5s
-      retries: 5
-      start_period: 10s
-
   backend:
     build: ./backend
     container_name: dancelearn_backend
-    command: python manage.py runserver 0.0.0.0:8000 --skip-checks
+    command: python manage.py runserver 0.0.0.0:8000
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.development
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - DATABASE_URL=${DATABASE_URL}
       - SECRET_KEY=${SECRET_KEY}
       - DEBUG=True
     ports:
       - '8000:8000'
     volumes:
       - ./backend:/app
-    depends_on:
-      db:
-        condition: service_healthy
 
   frontend:
     build: ./frontend
@@ -47,6 +28,3 @@ services:
       - /app/node_modules
     depends_on:
       - backend
-
-volumes:
-  postgres_data:
