@@ -1,0 +1,111 @@
+/**
+   SearchVar component styles
+*/
+
+/* parent container styles */
+.search-container {
+  display: inline-flex;
+  align-items: center;
+  background-color: #ffffff; /* Color de fondo inicial */
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-lg);
+  gap: var(--space-sm);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+}
+
+/* when the search box is empty */
+.search-container.placeholder {
+  opacity: 0.8;
+}
+
+/* when the search box is not empty */
+.search-container.filled {
+  opacity: 1;
+  background-color: #ffffff; /* Se vuelve blanco al tener contenido */
+  border-color: var(
+    --color-primary
+  ); /* Un borde suave para resaltar que hay datos */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* When the user clicks on the container */
+.search-container:focus-within {
+  background-color: #ffffff;
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/*input styles*/
+.search-input {
+  width: 200px;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  padding: 4px 0;
+}
+
+/* Placeholder style */
+.search-input::placeholder {
+  color: var(--color-text-disabled);
+  opacity: 0.6;
+}
+
+/* Container for the magnifying glass icon */
+.search-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Clean button  */
+.clear-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+/*when the mouse is on the cleaning button*/
+.clear-button:hover {
+  background-color: var(--color-hover-overlay);
+}
+/*when the user presses the clean button*/
+.clear-button:active {
+  background-color: var(--color-pressed-overlay);
+  transform: scale(0.9);
+}
+
+/*icon image style*/
+.icon-img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  filter: opacity(0.6);
+}
+
+/* Animation adjustment to make the switch between Search and X smooth */
+.search-icon-wrapper,
+.clear-button {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

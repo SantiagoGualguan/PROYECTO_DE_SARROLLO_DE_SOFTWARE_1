@@ -1,0 +1,71 @@
+/*
+Header.css
+Header component styles.
+Structure: left (menu + logo) | center (nav) | right (search + actions).
+
+*/
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--color-peach);
+  height: 100px;
+  padding: 0 var(--space-2xl);
+  width: 100%;
+}
+
+.header__left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.header__logo {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-sm);
+  cursor: pointer;
+}
+
+.header__logo-img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: var(--radius-full);
+}
+
+.header__logo-text {
+  font-family: var(--font-logo);
+  font-size: var(--font-size-xl);
+}
+
+.header__logo-dance {
+  font-weight: 400;
+  color: var(--color-text-primary);
+}
+
+.header__logo-learn {
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.header__center {
+  display: flex;
+  align-items: center;
+}
+
+/* ── Lado derecho ── */
+.header__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
