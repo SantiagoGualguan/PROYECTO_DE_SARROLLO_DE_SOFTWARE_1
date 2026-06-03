@@ -6,17 +6,17 @@ class IsAuthenticatedUser(BasePermission):
         return bool(request.user and request.user.is_authenticated)
 
 class IsAdmin(BasePermission):
-    """Strictly checks if rol == 'admin'"""
+    """Strictly checks if u_type == 'admin'"""
     def has_permission(self, request, view):
         if not super().has_permission(request, view): return False
-        return getattr(request.user, "rol", None) == "admin"
+        return getattr(request.user, "u_type", None) == "admin"
 
 
 class IsDirector(BasePermission):
-    """Strictly checks if rol == 'director'"""
+    """Strictly checks if u_type == 'director'"""
     def has_permission(self, request, view):
         if not super().has_permission(request, view): return False
-        return getattr(request.user, "rol", None) == "director"
+        return getattr(request.user, "u_type", None) == "director"
 
 
 class IsAdminOrDirector(BasePermission):
@@ -27,17 +27,17 @@ class IsAdminOrDirector(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        return getattr(request.user, "rol", None) in ["admin", "director"]
+        return getattr(request.user, "u_type", None) in ["admin", "director"]
 
 
 class IsProfesor(BasePermission):
-    """Strictly checks if rol == 'profesor'"""
+    """Strictly checks if u_type == 'profesor'"""
     def has_permission(self, request, view):
         if not super().has_permission(request, view): return False
-        return getattr(request.user, "rol", None) == "profesor"
+        return getattr(request.user, "u_type", None) == "profesor"
 
 class IsCliente(BasePermission):
-    """Strictly checks if rol == 'cliente'"""
+    """Strictly checks if u_type == 'cliente'"""
     def has_permission(self, request, view):
         if not super().has_permission(request, view): return False
-        return getattr(request.user, "rol", None) == "cliente"
+        return getattr(request.user, "u_type", None) == "cliente"

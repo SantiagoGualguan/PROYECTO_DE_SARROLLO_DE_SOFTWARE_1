@@ -1,13 +1,10 @@
-from rest_framework import viewsets
+from rest_framework import viewsets,status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
-from rest_framework import status
-from rest_framework.response import Response
-# role checks
 from apps.users.permissions import IsAdmin, IsDirector, IsProfesor
-
 from .models import Coreography, Video
 from .serializers import CoreographySerializer, VideoSerializer
+from rest_framework.response import Response
 
 
 class CoreographyViewSet(viewsets.ModelViewSet):
@@ -25,7 +22,7 @@ class CoreographyViewSet(viewsets.ModelViewSet):
         - list, retrieve (GET): Just requires being a logged-in user (like Cliente).
         """
         if self.action in ["create", "update", "partial_update", "destroy"]:
-            return [IsAdmin() | IsDirector() | IsProfesor()]
+            return [(IsAdmin | IsDirector | IsProfesor)()]
         
         # all users (including Cliente) can view the list and details of choreographies
         return [AllowAny()]
@@ -34,7 +31,9 @@ class CoreographyViewSet(viewsets.ModelViewSet):
     serializer_class = CoreographySerializer
 
     def list(self, request, *args, **kwargs):
-        raise NotImplementedError("TODO: implementar listado de coreografías")
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -44,7 +43,9 @@ class CoreographyViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def retrieve(self, request, *args, **kwargs):
-        raise NotImplementedError("TODO: implementar detalle de coreografía")
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
