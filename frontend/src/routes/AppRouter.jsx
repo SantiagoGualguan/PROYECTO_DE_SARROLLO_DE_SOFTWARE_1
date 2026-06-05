@@ -29,6 +29,7 @@ import SaleConfirmation from "../pages/sales/SaleConfirmation";
 import PurchaseHistory from "../pages/sales/PurchaseHistory";
 
 import ProtectedRoute from "../components/common/ProtectedRoute";
+import LandingPageV2 from "../pages/public/LandingPageV2";
 
 // RUTAS PÚBLICAS (sin auth):
 // / → LandingPage
@@ -54,6 +55,7 @@ const AppRouter = () => {
       {/* Públicas */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/catalogo" element={<CatalogPublic />} />
+      <Route path="/landing-v2" element={<LandingPageV2 />} />
       <Route path="/login" element={<Login />} />
       <Route path="/registro" element={<Register />} />
       <Route path="/recuperar-clave" element={<RecoverPassword />} />
