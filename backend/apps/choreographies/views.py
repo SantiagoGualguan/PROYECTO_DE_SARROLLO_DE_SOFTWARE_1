@@ -1,10 +1,22 @@
-from rest_framework import viewsets,status
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
-from apps.users.permissions import IsAdmin, IsDirector, IsProfesor
+from rest_framework.permissions import AllowAny, BasePermission
+from rest_framework.response import Response
+
+from django_filters.rest_framework import DjangoFilterBackend
+
 from .models import Coreography, Video
 from .serializers import CoreographySerializer, VideoSerializer
-from rest_framework.response import Response
+from .filters import CoreographyFilter
+
+
+class IsAdminDirectorOrProfesor(BasePermission):
+    """Local permission: allow users with u_type admin|director|profesor."""
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        return getattr(request.user, "u_type", None) in ["admin", "director", "profesor"]
 
 
 class CoreographyViewSet(viewsets.ModelViewSet):
@@ -19,16 +31,18 @@ class CoreographyViewSet(viewsets.ModelViewSet):
         """
         Dynamically assign permissions based on the incoming action:
         - create, update, destroy: Requires Admin, Director, OR Teacher.
-        - list, retrieve (GET): Just requires being a logged-in user (like Cliente).
+        - list, retrieve (GET): doesn't require authentication.
         """
         if self.action in ["create", "update", "partial_update", "destroy"]:
-            return [(IsAdmin | IsDirector | IsProfesor)()]
+            return [IsAdminDirectorOrProfesor()]
         
         # all users (including Cliente) can view the list and details of choreographies
         return [AllowAny()]
 
     queryset = Coreography.objects.all()
     serializer_class = CoreographySerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = CoreographyFilter
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -102,4 +116,3 @@ class VideoViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         raise NotImplementedError("TODO: implementar eliminación de videoclip")
-
