@@ -1,0 +1,24 @@
+/* NavBar styles */
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+  background-color: transparent;
+}
+
+.nav-item {
+  display: inline-flex;
+  font-family: var(--font-body);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  padding-bottom: var(--space-md);
+  border-bottom: 4px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.nav-item-active,
+.nav-item:hover {
+  font-weight: 600;
+  border-bottom: 3px solid var(--color-text-primary);
+}

@@ -28,10 +28,21 @@ const ButtonV2 = ({
     return (
       <IconButton
         size={size}
-        color={color}
         disabled={disabled}
         onClick={onClick}
         className={className}
+        sx={{
+          backgroundColor: `${color}.main`, // ← background del color de paleta
+          color: "var(--color-text-on-button)", // ← ícono siempre blanco
+          "&:hover": {
+            backgroundColor: `${color}.dark`, // ← usa el dark de la paleta al hover
+          },
+          "&.Mui-disabled": {
+            color: "var(--color-text-disabled)",
+            backgroundColor: "var(--color-disabled-bg)",
+            opacity: 0.38,
+          },
+        }}
       >
         {icon}
       </IconButton>
@@ -46,7 +57,8 @@ const ButtonV2 = ({
         onClick={onClick}
         className={className}
         sx={{
-          color: `${color}.main`, // lee de la paleta
+          backgroundColor: `${color}.main`, // ← background del color de paleta
+          color: "var(--color-text-on-button)", // ← ícono siempre blanco
           borderRadius: "var(--radius-md)",
           fontSize:
             size === "small"
@@ -60,6 +72,17 @@ const ButtonV2 = ({
               : size === "large"
                 ? "var(--space-lg)"
                 : "var(--space-md)",
+          "&:hover": {
+            backgroundColor: `${color}.dark`, // ← usa el dark de la paleta al hover
+          },
+
+          "&.Mui-disabled": {
+            // ← así se escribe en sx
+            color: "var(--color-text-disabled)",
+            backgroundColor: "var(--color-disabled-bg)",
+            opacity: 0.38,
+            cursor: "not-allowed", // ← string entre comillas
+          },
         }}
       >
         {icon}
