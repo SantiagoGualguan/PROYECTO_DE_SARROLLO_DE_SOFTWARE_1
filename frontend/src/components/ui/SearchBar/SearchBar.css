@@ -4,7 +4,7 @@
 
 /* parent container styles */
 .search-container {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   background-color: #ffffff; /* Color de fondo inicial */
   border-radius: var(--radius-md);
@@ -38,7 +38,7 @@
 
 /*input styles*/
 .search-input {
-  width: 200px;
+  flex: 1;
   border: none;
   background: transparent;
   outline: none;

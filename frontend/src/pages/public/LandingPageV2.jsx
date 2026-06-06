@@ -3,6 +3,7 @@ import StarIcon from "@mui/icons-material/Star";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import NavBarV2 from "../../components/ui/NavBar/NavBarV2";
 import NavBar from "../../components/ui/NavBar/NavBar";
+import SearchBar from "../../components/ui/SearchBar/SearchBar";
 
 const LandingV2 = () => {
   return (
@@ -183,6 +184,21 @@ const LandingV2 = () => {
           ]}
           fontSize=" --font-size-md"
         ></NavBarV2>
+      </div>
+      <div className="container-fluid">
+        <div className="row">
+          {/* Columna izquierda — SearchBar */}
+          <div className="col-6" style={{ backgroundColor: "red" }}>
+            <SearchBar
+              onSearch={(e) => {}}
+              placeholder="gumi..."
+              width="100%"
+            />
+          </div>
+
+          {/* Columna derecha — vacía por ahora */}
+          <div className="col-6" style={{ backgroundColor: "blue" }}></div>
+        </div>
       </div>
     </div>
   );
