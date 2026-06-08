@@ -3,11 +3,13 @@ from rest_framework.routers import DefaultRouter
 
 from .views import CoreographyViewSet, VideoViewSet
 
-router = DefaultRouter()
-router.register(r"", CoreographyViewSet, basename="choreographies")
-router.register(r"videos", VideoViewSet, basename="choreography-videos")
+choreography_router = DefaultRouter()
+choreography_router.register(r"(?P<cid>[0-9]+)", CoreographyViewSet, basename="choreographies")
+
+video_router = DefaultRouter()
+video_router.register(r"", VideoViewSet, basename="videos")
 
 urlpatterns = [
-    path("", include(router.urls)),
+    path("", include(choreography_router.urls)),
+    path("videos/", include(video_router.urls)),
 ]
-

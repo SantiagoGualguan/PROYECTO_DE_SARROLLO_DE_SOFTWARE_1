@@ -2,6 +2,12 @@ import django_filters
 
 from .models import Coreography
 
+"""
+Módulo de filtros para Coreography (coreografias).
+
+TODO: implementar filtros por género, nivel y profesor utilizando django-filter
+u otra estrategia de filtrado.
+"""
 
 class CoreographyFilter(django_filters.FilterSet):
     """
@@ -20,11 +26,5 @@ class CoreographyFilter(django_filters.FilterSet):
     class Meta:
         model = Coreography
         fields = ["genero", "nivel", "profesor"]
-"""
-Módulo de filtros para Coreography (coreografias).
-
-TODO: implementar filtros por género, nivel y profesor utilizando django-filter
-u otra estrategia de filtrado.
-"""
 
 

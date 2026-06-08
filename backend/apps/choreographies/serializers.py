@@ -10,6 +10,11 @@ class VideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
         fields = "__all__"
+        read_only_fields = ["upload_date"]
+
+    def create(self, validated_data):
+        validated_data.setdefault("upload_date", timezone.now())
+        return super().create(validated_data)
 
 
 class CoreographySerializer(serializers.ModelSerializer):
