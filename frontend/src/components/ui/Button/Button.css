@@ -1,0 +1,113 @@
+/*
+    Button Component Styles 
+    Variants: filled, outlined, icon-round, icon-square, icon-text 
+    sizes: small, medium, large
+*/
+
+/*--- Button default ---*/
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-itmes: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: var(--font-button);
+  font-weight: 500;
+  letter-spacing: 0.15px;
+  transition: opacity 0.2s ease;
+}
+
+/* --- State layer --- */
+.btn__state-layer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  width: 100%;
+  height: 100%;
+}
+
+.btn:hover:not(:disabled) .btn__state-layer {
+  background-color: var(--color-hover-overlay);
+}
+
+.btn:active:not(:disabled) .btn__state-layer {
+  background-color: var(--color-pressed-overlay);
+}
+
+/* ── Button with Icon ── */
+.btn__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-md);
+  height: var(--icon-md);
+}
+
+/* ── button sizes ── */
+.btn--small {
+  height: 36px;
+  font-size: var(--font-size-xs);
+  padding: 0 var(--space-lg);
+}
+
+.btn--medium {
+  height: 48px;
+  font-size: var(--font-size-sm);
+  padding: 0 var(--space-xl);
+}
+
+.btn--large {
+  height: 56px;
+  font-size: var(--font-size-md);
+  padding: 0 var(--space-2xl);
+}
+
+/* ── Variant: filled (colored background + white text) ── */
+.btn--filled {
+  color: var(--color-text-on-button);
+  border-radius: var(--radius-full);
+}
+
+/* ── Variant: outlined  (black border) ── */
+.btn--outlined {
+  color: var(--color-text-primary);
+  border: 2px solid var(--color-text-primary);
+  border-radius: var(--radius-full);
+}
+
+/* ── Variant: icon-round (icon circular) ── */
+.btn--icon-round {
+  color: var(--color-text-on-button);
+  border-radius: var(--radius-full);
+  padding: 0;
+  width: 48px;
+  height: 48px;
+}
+
+/* ── Variant: icon-square (square icon) ── */
+.btn--icon-square {
+  color: var(--color-text-on-button);
+  border-radius: var(--radius-md);
+  padding: 0;
+  width: 48px;
+  height: 48px;
+}
+
+/* ── Variant: icon-text (ícon + text) ── */
+.btn--icon-text {
+  color: var(--color-text-on-button);
+  border-radius: var(--radius-full);
+}
+
+/* ── state: disabled ── */
+.btn:disabled {
+  background-color: var(--color-disabled-bg);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
+.btn--outlined:disabled {
+  border-color: var(--color-disabled-bg);
+}
