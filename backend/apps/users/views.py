@@ -1,5 +1,8 @@
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.db import connection, transaction
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -164,13 +167,80 @@ class AuthViewSet(viewsets.ViewSet):
     def token_refresh(self, request):
         raise NotImplementedError("TODO: implementar token refresh")
 
-    @action(detail=False, methods=["post"])
+    @action(detail=False, methods=["post"], permission_classes=[AllowAny], url_path="recover-password")
     def recover_password(self, request):
-        raise NotImplementedError("TODO: implementar recover password")
+        email = request.data.get("email")
+        if not email:
+            return Response(
+                {"detail": "El correo electrónico es requerido"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    @action(detail=True, methods=["post"], url_path="reset-password")
-    def reset_password(self, request, pk=None):
-        raise NotImplementedError("TODO: implementar reset password")
+        try:
+            email_rel = UserEmail.objects.select_related("user").get(email__iexact=email)
+            user = email_rel.user
+        except UserEmail.DoesNotExist:
+            return Response(
+                {"detail": "Se ha enviado un enlace para recuperar tu contraseña"},
+                status=status.HTTP_200_OK,
+            )
+
+        if not user.is_active:
+            return Response(
+                {"detail": "Se ha enviado un enlace para recuperar tu contraseña"},
+                status=status.HTTP_200_OK,
+            )
+
+        token_generator = PasswordResetTokenGenerator()
+        token = token_generator.make_token(user)
+        uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+
+        return Response(
+            {"detail": "Se ha enviado un enlace para recuperar tu contraseña"},
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=False, methods=["post"], permission_classes=[AllowAny], url_path="reset-password")
+    def reset_password(self, request):
+        uidb64 = request.data.get("uidb64")
+        token = request.data.get("token")
+        new_password = request.data.get("password")
+
+        if not uidb64 or not token or not new_password:
+            return Response(
+                {"detail": "uidb64, token y password son requeridos"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = CustomUser.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
+            return Response(
+                {"detail": "El enlace de recuperación es inválido"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not user.is_active:
+            return Response(
+                {"detail": "El enlace de recuperación es inválido"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        token_generator = PasswordResetTokenGenerator()
+        if not token_generator.check_token(user, token):
+            return Response(
+                {"detail": "El enlace de recuperación es inválido o ha expirado"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user.password = make_password(new_password)
+        user.save(update_fields=["password"])
+
+        return Response(
+            {"detail": "Contraseña actualizada exitosamente"},
+            status=status.HTTP_200_OK,
+        )
 
 
 class InternalUserViewSet(viewsets.ModelViewSet):
