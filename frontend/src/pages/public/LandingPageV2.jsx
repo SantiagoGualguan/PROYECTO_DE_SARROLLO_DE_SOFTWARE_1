@@ -4,6 +4,9 @@ import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import NavBarV2 from "../../components/ui/NavBar/NavBarV2";
 import NavBar from "../../components/ui/NavBar/NavBar";
 import SearchBar from "../../components/ui/SearchBar/SearchBar";
+import { blue } from "@mui/material/colors";
+import HeaderV2 from "../../components/layout/Header/HeaderV2";
+import NavBarV3 from "../../components/ui/NavBar/NavBarV3";
 
 const LandingV2 = () => {
   return (
@@ -176,13 +179,13 @@ const LandingV2 = () => {
       <div className="container-xxl">
         100% wide until extra extra large breakpoint
       </div>
-      <div>
+      <div style={{ height: "100px", backgroundColor: "#ffdfc8" }}>
         <NavBarV2
           items={[
             { label: "Coreografías", to: "/catalogo" },
             { label: "Profesores", to: "/profesores" },
           ]}
-          fontSize=" --font-size-md"
+          fontSize=" --font-size-xl"
         ></NavBarV2>
       </div>
       <div className="container-fluid">
@@ -200,6 +203,44 @@ const LandingV2 = () => {
           <div className="col-6" style={{ backgroundColor: "blue" }}></div>
         </div>
       </div>
+      <div style={{ height: "100px", backgroundColor: "#ffdfc8" }}>
+        <NavBarV3
+          items={[
+            { label: "Coreografías", to: "/catalogo" },
+            { label: "Profesores", to: "/profesores" },
+          ]}
+          fontSize=" --font-size-md"
+          collapsible={true}
+        ></NavBarV3>
+      </div>
+      <HeaderV2
+        showMenu={true}
+        showFullLogo={true}
+        navItems={[
+          { label: "Coreografías", to: "/catalogo" },
+          { label: "Profesores", to: "/profesores" },
+          { label: "Coreografíass", to: "/" },
+        ]}
+        showSearch={true}
+        rightActions={
+          <>
+            <ButtonV2
+              label="Inicia sesión"
+              variant="contained"
+              size="large"
+              color="primary"
+              onClick={() => navigate("/login")}
+            />
+            <ButtonV2
+              label="Regístrate"
+              variant="contained"
+              size="large"
+              color="primary"
+              onClick={() => navigate("/registro")}
+            />
+          </>
+        }
+      ></HeaderV2>
     </div>
   );
 };

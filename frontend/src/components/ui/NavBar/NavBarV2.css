@@ -2,17 +2,19 @@
 
 .nav {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: var(--space-xl);
   background-color: transparent;
+  height: 100%;
 }
 
 .nav-item {
   display: inline-flex;
+  align-items: center;
   font-family: var(--font-body);
   color: var(--color-text-primary);
   text-decoration: none;
-  padding-bottom: var(--space-md);
+  /*padding-bottom: var(--space-md);*/
   border-bottom: 4px solid transparent;
   transition: all 0.3s ease;
 }

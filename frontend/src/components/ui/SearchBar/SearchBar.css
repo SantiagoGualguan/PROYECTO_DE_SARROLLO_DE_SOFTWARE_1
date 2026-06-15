@@ -39,6 +39,7 @@
 /*input styles*/
 .search-input {
   flex: 1;
+  min-width: 0;
   border: none;
   background: transparent;
   outline: none;
@@ -60,6 +61,7 @@
   align-items: center;
   justify-content: center;
   pointer-events: none;
+  flex-shrink: 0;
 }
 
 /* Clean button  */
@@ -73,6 +75,7 @@
   cursor: pointer;
   border-radius: 50%;
   transition: background-color 0.2s;
+  flex-shrink: 0;
 }
 
 /*when the mouse is on the cleaning button*/
