@@ -1,12 +1,13 @@
 import ButtonV2 from "../../components/ui/Button/ButtonV2";
 import StarIcon from "@mui/icons-material/Star";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
-import NavBarV2 from "../../components/ui/NavBar/NavBarV2";
+//import NavBarV2 from "../../components/ui/NavBar/NavBarV2";
 import NavBar from "../../components/ui/NavBar/NavBar";
 import SearchBar from "../../components/ui/SearchBar/SearchBar";
 import { blue } from "@mui/material/colors";
 import HeaderV2 from "../../components/layout/Header/HeaderV2";
 import NavBarV3 from "../../components/ui/NavBar/NavBarV3";
+import HeroSection from "./LandingPage/sections/HeroSectionV2";
 
 const LandingV2 = () => {
   return (
@@ -179,15 +180,7 @@ const LandingV2 = () => {
       <div className="container-xxl">
         100% wide until extra extra large breakpoint
       </div>
-      <div style={{ height: "100px", backgroundColor: "#ffdfc8" }}>
-        <NavBarV2
-          items={[
-            { label: "Coreografías", to: "/catalogo" },
-            { label: "Profesores", to: "/profesores" },
-          ]}
-          fontSize=" --font-size-xl"
-        ></NavBarV2>
-      </div>
+
       <div className="container-fluid">
         <div className="row">
           {/* Columna izquierda — SearchBar */}
@@ -241,6 +234,7 @@ const LandingV2 = () => {
           </>
         }
       ></HeaderV2>
+      <HeroSection></HeroSection>
     </div>
   );
 };

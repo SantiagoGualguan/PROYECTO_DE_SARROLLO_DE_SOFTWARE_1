@@ -1,7 +1,14 @@
 import Button from "../../../../components/ui/Button/Button";
-import mujer_bailando from "../../../../assets/mujer_bailando.png";
+import mujer_bailando from "../../../../assets/images/mujer_bailando.png";
 /**
  * Welcome section
+ *
+ * el contenedor hero y content (podrían ser solo uno) ocuparian 10
+ * columnas de 12 en pantallas extra grander y grandes, y 12 columnas es pantallas medianas y pequeñas
+ *
+ * en pantallas xl y l, el contenedor content left ocuparía las 5 columnas
+ * y el contenedor contentRight ocuparia las 4 restantes.
+ *
  */
 const hero = "w-full flex justify-center items-center px-28";
 const content =
