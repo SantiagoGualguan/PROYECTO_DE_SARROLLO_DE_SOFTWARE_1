@@ -1,4 +1,9 @@
-﻿from django.contrib.auth.hashers import make_password
+﻿import json
+from urllib.error import URLError
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+
+from django.contrib.auth.hashers import make_password
 from django.db import connection, transaction
 from django.db.models import Q, Value
 from django.db.models.functions import Concat
@@ -7,6 +12,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from django.conf import settings
 
 from .models import CustomUser, UserEmail, UserPhoneNumber
 from .permissions import IsAdmin
@@ -30,6 +37,8 @@ SQL_CREATION_ERROR = (
     "No se pudo crear el usuario con la funcion SQL. "
     "Verifica que 02_functions.sql este aplicado en la base de datos."
 )
+
+TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
 
 
 def _split_full_name(full_name):
@@ -121,6 +130,26 @@ def _handle_creation_error(exc):
     return Response({"detail": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+def verify_turnstile_token(token):
+    if not token:
+        return False
+
+    secret_key = getattr(settings, "TURNSTILE_SECRET_KEY", None)
+    if not secret_key:
+        return False
+
+    payload = urlencode({"secret": secret_key, "response": token}).encode("utf-8")
+    request = Request(TURNSTILE_VERIFY_URL, data=payload, method="POST")
+    request.add_header("Content-Type", "application/x-www-form-urlencoded")
+
+    try:
+        with urlopen(request, timeout=5) as response:
+            result = json.loads(response.read().decode("utf-8"))
+            return result.get("success", False)
+    except (URLError, TimeoutError, ValueError):
+        return False
+
+
 class AuthViewSet(viewsets.ViewSet):
     """
     ViewSet para autenticacion:
@@ -136,6 +165,24 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"], permission_classes=[AllowAny])
     def login(self, request):
+        captcha_token = (
+            request.data.get("captcha_token")
+            or request.data.get("turnstile_token")
+            or request.data.get("captcha")
+        )
+
+        if not captcha_token:
+            return Response(
+                {"detail": "El token de CAPTCHA es requerido."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not verify_turnstile_token(captcha_token):
+            return Response(
+                {"detail": "La validacion del CAPTCHA no es valida."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         identifier = (
             request.data.get("identifier")
             or request.data.get("email")
