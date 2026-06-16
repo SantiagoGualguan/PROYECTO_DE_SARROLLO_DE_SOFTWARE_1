@@ -1,0 +1,97 @@
+/* ── Sección features ── */
+.feature-section {
+  width: 100%;
+  padding: var(--space-lg) var(--space-2xl);
+}
+
+/* ── Card ── */
+.feature-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2xl);
+  padding: var(--space-2xl) var(--space-lg);
+  border-radius: 30px;
+}
+
+.feature-card-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: white;
+  text-align: center;
+  margin: 0;
+}
+
+/* ── Iconos dentro de la card ── */
+.feature-icons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xl);
+  width: 100%;
+}
+
+.feature-icon-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  flex: 1; /* ← cada item ocupa el mismo espacio */
+  min-width: 0;
+}
+
+.feature-icon-img {
+  width: 100%;
+  max-width: 100px;
+  height: auto;
+  object-fit: contain;
+}
+
+.feature-icon-label {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: white;
+  text-align: center;
+  margin: 0;
+}
+
+/* ── Tablet ── */
+@media (max-width: 992px) {
+  .feature-section {
+    padding: var(--space-lg) var(--space-xl);
+  }
+
+  .feature-icon-img {
+    width: 80px;
+    height: 80px;
+  }
+
+  .feature-card-title {
+    font-size: var(--font-size-xl);
+  }
+
+  .feature-icon-label {
+    font-size: var(--font-size-md);
+  }
+}
+
+/* ── Móvil ── */
+@media (max-width: 600px) {
+  .feature-section {
+    padding: var(--space-lg);
+  }
+
+  .feature-icon-img {
+    width: 60px;
+    height: 60px;
+  }
+
+  .feature-card-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .feature-icon-label {
+    font-size: var(--font-size-sm);
+  }
+}

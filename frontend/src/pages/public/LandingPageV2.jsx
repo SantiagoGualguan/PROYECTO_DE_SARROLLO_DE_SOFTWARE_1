@@ -8,6 +8,8 @@ import { blue } from "@mui/material/colors";
 import HeaderV2 from "../../components/layout/Header/HeaderV2";
 import NavBarV3 from "../../components/ui/NavBar/NavBarV3";
 import HeroSection from "./LandingPage/sections/HeroSectionV2";
+import DescriptionSection from "./LandingPage/sections/DescriptionSectionV2";
+import FeatureSection from "./LandingPage/sections/FeaturesSectionV2";
 
 const LandingV2 = () => {
   return (
@@ -206,7 +208,7 @@ const LandingV2 = () => {
           collapsible={true}
         ></NavBarV3>
       </div>
-      <HeaderV2
+      {/**<HeaderV2
         showMenu={true}
         showFullLogo={true}
         navItems={[
@@ -233,8 +235,10 @@ const LandingV2 = () => {
             />
           </>
         }
-      ></HeaderV2>
+      ></HeaderV2>*/}
       <HeroSection></HeroSection>
+      <DescriptionSection></DescriptionSection>
+      <FeatureSection></FeatureSection>
     </div>
   );
 };
