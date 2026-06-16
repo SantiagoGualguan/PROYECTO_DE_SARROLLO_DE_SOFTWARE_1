@@ -10,6 +10,7 @@ import NavBarV3 from "../../components/ui/NavBar/NavBarV3";
 import HeroSection from "./LandingPage/sections/HeroSectionV2";
 import DescriptionSection from "./LandingPage/sections/DescriptionSectionV2";
 import FeatureSection from "./LandingPage/sections/FeaturesSectionV2";
+import PreviewSection from "./LandingPage/sections/PreviewSectionV2";
 
 const LandingV2 = () => {
   return (
@@ -239,6 +240,7 @@ const LandingV2 = () => {
       <HeroSection></HeroSection>
       <DescriptionSection></DescriptionSection>
       <FeatureSection></FeatureSection>
+      <PreviewSection></PreviewSection>
     </div>
   );
 };
