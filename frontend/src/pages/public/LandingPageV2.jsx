@@ -11,7 +11,9 @@ import HeroSection from "./LandingPage/sections/HeroSectionV2";
 import DescriptionSection from "./LandingPage/sections/DescriptionSectionV2";
 import FeatureSection from "./LandingPage/sections/FeaturesSectionV2";
 import PreviewSection from "./LandingPage/sections/PreviewSectionV2";
-
+import GenresSection from "./LandingPage/sections/GenresSectionV2";
+import TeacherSection from "./LandingPage/sections/TeacherSectionV2";
+import Footer from "../../components/layout/Footer/Footer";
 const LandingV2 = () => {
   return (
     <div
@@ -241,6 +243,9 @@ const LandingV2 = () => {
       <DescriptionSection></DescriptionSection>
       <FeatureSection></FeatureSection>
       <PreviewSection></PreviewSection>
+      <GenresSection></GenresSection>
+      <TeacherSection></TeacherSection>
+      <Footer></Footer>
     </div>
   );
 };

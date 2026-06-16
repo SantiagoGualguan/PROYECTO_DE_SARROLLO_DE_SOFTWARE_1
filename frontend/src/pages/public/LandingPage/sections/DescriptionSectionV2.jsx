@@ -3,7 +3,7 @@ import "./DescriptionSection.css";
 const DescriptionSection = () => {
   return (
     <section className="description-section">
-      <div className="container-xl">
+      <div className="container-fluid">
         <div className="row justify-content-center">
           <div className="col-12 col-lg-10">
             <div className="description-content">

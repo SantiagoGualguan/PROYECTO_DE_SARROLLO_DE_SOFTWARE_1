@@ -6,7 +6,7 @@ import "./HeroSection.css";
 const HeroSection = () => {
   return (
     <section className="hero-section">
-      <div className="container-xl">
+      <div className="container-fluid">
         <div className="row  justify-content-center">
           {/* Contenedor principal — 10 cols en xl/lg, 12 en md/sm */}
           <div className="col-12 col-lg-10">

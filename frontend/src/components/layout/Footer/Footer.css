@@ -1,0 +1,40 @@
+.footer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-2xl) var(--space-lg);
+  background-color: var(--color-pink-light);
+}
+
+.footer-information {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xl);
+  flex-wrap: wrap; /* ← en móvil muy pequeño los textos se envuelven */
+}
+
+.footer-text {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  font-weight: 300;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.footer-social {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xl);
+}
+
+.footer-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
