@@ -14,7 +14,7 @@ const HeaderV2 = ({
   showFullLogo = true,
   navItems = [],
   showSearch = false,
-  rightActions = null,
+  rightActions = [],
   className = "",
 }) => {
   const navigate = useNavigate();
@@ -77,6 +77,20 @@ const HeaderV2 = ({
     return () => observer.disconnect();
   }, [navItems]);
 
+  const renderedActions = Array.isArray(rightActions)
+    ? rightActions.map(({ label, variant, color, onClick, icon }) => (
+        <Button
+          key={label}
+          label={label}
+          variant={variant}
+          color={color}
+          icon={icon}
+          size={isMobile ? "small" : "medium"}
+          onClick={onClick}
+        />
+      ))
+    : rightActions;
+
   return (
     <>
       <header ref={headerRef} className={`header ${className}`}>
@@ -87,7 +101,7 @@ const HeaderV2 = ({
               <Button
                 icon={<MenuIcon />}
                 variant="icon-square"
-                size="medium"
+                size={isMobile ? "small" : "medium"}
                 color="primary"
               />
             )}
@@ -147,7 +161,7 @@ const HeaderV2 = ({
         </div>
         {/* ── Derecha: actions ── */}
         <div ref={headerActionsRef} className="header_actions">
-          <div className="header_actions-wrapper">{rightActions}</div>
+          <div className="header_actions-wrapper">{renderedActions}</div>
         </div>
       </header>
 

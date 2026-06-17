@@ -135,7 +135,7 @@
 }
 
 .header_navbar-hidden {
-  position: absolute;
+  position: fixed;
   visibility: hidden;
   pointer-events: none;
   display: flex;
@@ -194,15 +194,15 @@
     gap: var(--space-sm);
     /*transform: scale(0.8); /* reduce al 80% 
     transform-origin: right center;*/
-    zoom: 0.8;
+    /**zoom: 0.8;*/
   }
 
   /* ← botón menu más pequeño */
-  .header_menu {
+  /**.header_menu {
     /*transform: scale(0.8);
-    transform-origin: left center;*/
+    transform-origin: left center;
     zoom: 0.8;
-  }
+  }*/
 
   /* activa fullscreen cuando está abierto */
   .search-fullscreen {

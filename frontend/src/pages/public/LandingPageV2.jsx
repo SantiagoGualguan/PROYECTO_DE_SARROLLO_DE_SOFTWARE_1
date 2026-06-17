@@ -27,7 +27,7 @@ const LandingV2 = () => {
       }} 
       */
     >
-      {/* ── Contained ── */}
+      {/* ── Contained ── 
       <h2>Contained</h2>
       <ButtonV2
         label="Empezar"
@@ -59,8 +59,9 @@ const LandingV2 = () => {
         size="medium"
         color="peach"
       />
+      */}
 
-      {/* ── Outlined ── */}
+      {/* ── Outlined ── 
       <h2>Outlined</h2>
       <ButtonV2
         label="Ver más"
@@ -86,8 +87,9 @@ const LandingV2 = () => {
         size="medium"
         color="secondary"
       />
+      */}
 
-      {/* ── Text ── */}
+      {/* ── Text ── 
       <h2>Text</h2>
       <ButtonV2 label="Cancelar" variant="text" size="small" color="primary" />
       <ButtonV2 label="Cancelar" variant="text" size="medium" color="primary" />
@@ -97,8 +99,9 @@ const LandingV2 = () => {
         size="large"
         color="secondary"
       />
+      */}
 
-      {/* ── Icon circular ── */}
+      {/* ── Icon circular ── 
       <h2>Icon circular</h2>
       <ButtonV2
         variant="icon"
@@ -118,8 +121,9 @@ const LandingV2 = () => {
         size="large"
         color="secondary"
       />
+      */}
 
-      {/* ── Icon square ── */}
+      {/* ── Icon square ── 
       <h2>Icon square</h2>
       <ButtonV2
         variant="icon-square"
@@ -139,8 +143,9 @@ const LandingV2 = () => {
         size="large"
         color="secondary"
       />
+      */}
 
-      {/* ── Icon + Text ── */}
+      {/* ── Icon + Text ── 
       <h2>Icon + Text</h2>
       <ButtonV2
         label="Explorar"
@@ -163,8 +168,9 @@ const LandingV2 = () => {
         size="large"
         color="secondary"
       />
+      */}
 
-      {/* ── Disabled ── */}
+      {/* ── Disabled ── 
       <h2>Disabled</h2>
       <ButtonV2 label="No disponible" variant="contained" disabled />
       <ButtonV2 label="No disponible" variant="outlined" disabled />
@@ -186,9 +192,11 @@ const LandingV2 = () => {
         100% wide until extra extra large breakpoint
       </div>
 
+      */}
+      {/** 
       <div className="container-fluid">
         <div className="row">
-          {/* Columna izquierda — SearchBar */}
+          {/* Columna izquierda — SearchBar 
           <div className="col-6" style={{ backgroundColor: "red" }}>
             <SearchBar
               onSearch={(e) => {}}
@@ -197,7 +205,7 @@ const LandingV2 = () => {
             />
           </div>
 
-          {/* Columna derecha — vacía por ahora */}
+          {/* Columna derecha — vacía por ahora 
           <div className="col-6" style={{ backgroundColor: "blue" }}></div>
         </div>
       </div>
@@ -211,6 +219,7 @@ const LandingV2 = () => {
           collapsible={true}
         ></NavBarV3>
       </div>
+      */}
       {/**<HeaderV2
         showMenu={true}
         showFullLogo={true}
@@ -239,13 +248,37 @@ const LandingV2 = () => {
           </>
         }
       ></HeaderV2>*/}
-      <HeroSection></HeroSection>
+      <HeaderV2
+        showMenu={true}
+        showFullLogo={true}
+        navItems={[
+          { label: "Coreografías", to: "/catalogo" },
+          { label: "Profesores", to: "/profesores" },
+          { label: "Coreografíass", to: "/" },
+        ]}
+        showSearch={true}
+        rightActions={[
+          {
+            label: "Inicia sesión",
+            variant: "contained",
+            color: "primary",
+            onClick: () => navigate("/login"),
+          },
+          {
+            label: "Regístrate",
+            variant: "contained",
+            color: "primary",
+            onClick: () => navigate("/register"),
+          },
+        ]}
+      ></HeaderV2>
+      {/**<HeroSection></HeroSection>
       <DescriptionSection></DescriptionSection>
       <FeatureSection></FeatureSection>
       <PreviewSection></PreviewSection>
       <GenresSection></GenresSection>
       <TeacherSection></TeacherSection>
-      <Footer></Footer>
+      <Footer></Footer>*/}
     </div>
   );
 };
