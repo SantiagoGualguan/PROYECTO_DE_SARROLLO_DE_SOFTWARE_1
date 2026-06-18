@@ -1,18 +1,17 @@
-import ButtonV2 from "../../components/ui/Button/ButtonV2";
+import ButtonV2 from "../../components/ui/Button/Button";
 import StarIcon from "@mui/icons-material/Star";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 //import NavBarV2 from "../../components/ui/NavBar/NavBarV2";
 import NavBar from "../../components/ui/NavBar/NavBar";
 import SearchBar from "../../components/ui/SearchBar/SearchBar";
 import { blue } from "@mui/material/colors";
-import HeaderV2 from "../../components/layout/Header/HeaderV2";
-import NavBarV3 from "../../components/ui/NavBar/NavBarV3";
-import HeroSection from "./LandingPage/sections/HeroSectionV2";
-import DescriptionSection from "./LandingPage/sections/DescriptionSectionV2";
-import FeatureSection from "./LandingPage/sections/FeaturesSectionV2";
-import PreviewSection from "./LandingPage/sections/PreviewSectionV2";
-import GenresSection from "./LandingPage/sections/GenresSectionV2";
-import TeacherSection from "./LandingPage/sections/TeacherSectionV2";
+import Header from "../../components/layout/Header/Header";
+import HeroSection from "./LandingPage/sections/HeroSection";
+import DescriptionSection from "./LandingPage/sections/DescriptionSection";
+import FeatureSection from "./LandingPage/sections/FeaturesSection";
+import PreviewSection from "./LandingPage/sections/PreviewSection";
+import GenresSection from "./LandingPage/sections/GenresSection";
+import TeacherSection from "./LandingPage/sections/TeacherSection";
 import Footer from "../../components/layout/Footer/Footer";
 const LandingV2 = () => {
   return (
@@ -248,7 +247,7 @@ const LandingV2 = () => {
           </>
         }
       ></HeaderV2>*/}
-      <HeaderV2
+      <Header
         showMenu={true}
         showFullLogo={true}
         navItems={[
@@ -271,14 +270,14 @@ const LandingV2 = () => {
             onClick: () => navigate("/register"),
           },
         ]}
-      ></HeaderV2>
-      {/**<HeroSection></HeroSection>
+      ></Header>
+      <HeroSection></HeroSection>
       <DescriptionSection></DescriptionSection>
       <FeatureSection></FeatureSection>
       <PreviewSection></PreviewSection>
       <GenresSection></GenresSection>
       <TeacherSection></TeacherSection>
-      <Footer></Footer>*/}
+      <Footer></Footer>
     </div>
   );
 };

@@ -2,63 +2,182 @@ import "./Header.css";
 import NavBar from "../../ui/NavBar/NavBar";
 import SearchBar from "../../ui/SearchBar/SearchBar";
 import Button from "../../ui/Button/Button";
-import MenuIcon from "../../../assets/icons/menu.png";
 import logo from "../../../assets/logo.png";
 import { useNavigate } from "react-router-dom";
-
-/**
- * Componente reutilizable de encabezado.
- * @param {boolean}     showMenu      - Show the hamburger menu button.
- * @param {boolean}     showFullLogo  - Muestra logo + nombre. Si es false, solo el logo.
- * @param {Array}       navItems      -  Items del NavBar [{ label, to }].
- * @param {boolean}     showSearch    - Displays the search bar.
- * @param {JSX.Element} rightActions  - Buttons on the right side.
- * @param {string}      className     - Additional CSS classes.
- * @returns {JSX.Element} Application header.
- */
+import MenuIcon from "@mui/icons-material/Menu";
+import SearchIcon from "@mui/icons-material/Search";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import { useState, useRef, useEffect } from "react";
 const Header = ({
   showMenu = false,
   showFullLogo = true,
   navItems = [],
   showSearch = false,
-  rightActions = null,
+  rightActions = [],
   className = "",
 }) => {
   const navigate = useNavigate();
+  const [searchOpen, setSearchOpen] = useState(false); // búsqueda fullscreen móvil
+  const [navCollapsed, setNavCollapsed] = useState(false);
+  const hiddenNavRef = useRef(null);
+  const navCollapsedRef = useRef(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
+  const headerCenterRef = useRef(null);
+  const headerRef = useRef(null);
+  const headerLeftRef = useRef(null);
+  const headerActionsRef = useRef(null);
+  const lastCenterWidthRef = useRef(0);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 600);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (!navItems.length) return;
+
+    const observer = new ResizeObserver(() => {
+      if (
+        hiddenNavRef.current &&
+        headerRef.current &&
+        headerLeftRef.current &&
+        headerActionsRef.current
+      ) {
+        const itemsWidth = hiddenNavRef.current.scrollWidth;
+
+        // calcula el espacio disponible de forma estable
+        // el header siempre tiene el mismo ancho, y left/actions nunca cambian
+        const headerWidth = headerRef.current.offsetWidth;
+        const leftWidth = headerLeftRef.current.offsetWidth;
+        const actionsWidth = headerActionsRef.current.offsetWidth;
+        const padding = 48; // 2 * space-xl
+        const gaps = 48; // gaps entre los 3 bloques
+
+        // espacio disponible para navbar + searchbar juntos
+        const centerWidth =
+          headerWidth - leftWidth - actionsWidth - padding - gaps;
+
+        // espacio para el navbar = centro menos el searchbar mínimo
+        const searchMinWidth = 150; // ancho mínimo razonable del searchbar
+        const availableForNav = centerWidth - searchMinWidth - 16; // 16 = gap entre navbar y searchbar
+
+        const shouldCollapse = itemsWidth > availableForNav;
+
+        if (shouldCollapse !== navCollapsedRef.current) {
+          navCollapsedRef.current = shouldCollapse;
+          setNavCollapsed(shouldCollapse);
+        }
+      }
+    });
+
+    if (headerRef.current) observer.observe(headerRef.current);
+
+    return () => observer.disconnect();
+  }, [navItems]);
+
+  const renderedActions = Array.isArray(rightActions)
+    ? rightActions.map(({ label, variant, color, onClick, icon }) => (
+        <Button
+          key={label}
+          label={label}
+          variant={variant}
+          color={color}
+          icon={icon}
+          size={isMobile ? "small" : "medium"}
+          onClick={onClick}
+        />
+      ))
+    : rightActions;
 
   return (
-    <header className={`header ${className}`}>
-      <div className="header__left">
-        {showMenu && (
-          <Button
-            icon={<img src={MenuIcon} alt="menú" width="20px" />}
-            variant="icon-square"
-            size="large"
-            color="var(--color-primary)"
-            onClick={() => {}}
-          />
-        )}
-        <div className="header__logo" onClick={() => navigate("/")}>
-          <img className="header__logo-img" src={logo} alt="DanceLearn logo" />
-          {showFullLogo && (
-            <p className="header__logo-text">
-              <span className="header__logo-dance">Dance</span>
-              <span className="header__logo-learn">Learn</span>
-            </p>
+    <>
+      <header ref={headerRef} className={`header ${className}`}>
+        {/* ── Izquierda: menu + logo ── */}
+        <div ref={headerLeftRef} className="header_left">
+          <div className="header_menu">
+            {showMenu && (
+              <Button
+                icon={<MenuIcon />}
+                variant="icon-square"
+                size={isMobile ? "small" : "medium"}
+                color="primary"
+              />
+            )}
+          </div>
+          <div className="header_logo" onClick={() => navigate("/")}>
+            <img className="header_logo-img" src={logo} alt="DanceLearn logo" />
+            {/* En móvil se oculta el texto, en desktop depende de showFullLogo */}
+            {showFullLogo && (
+              <p className="header_logo-text">
+                <span className="header_logo-dance">Dance</span>
+                <span className="header_logo-learn">Learn</span>
+              </p>
+            )}
+          </div>
+        </div>
+        {/* ── Centro: navbar + searchbar ── */}
+        <div
+          ref={headerCenterRef}
+          className={`header_center ${navCollapsed || isMobile ? "header_center--collapsed" : ""}`}
+        >
+          {/* NavBar desktop — se oculta en móvil */}
+          {navItems.length > 0 && (
+            <div className="header_navbar">
+              {/* Mide el ancho real de los items — siempre en el DOM, siempre invisible */}
+              <div ref={hiddenNavRef} className="header_navbar-hidden">
+                {navItems.map(({ label }) => (
+                  <span key={`hidden-${label}`} className="nav-item">
+                    {label}
+                  </span>
+                ))}
+              </div>
+              {/* NavBar recibe collapsible según lo que calculó el Header */}
+              <NavBar
+                items={navItems}
+                fontSize="--font-size-md"
+                collapsible={navCollapsed || isMobile} // ← Header decide, NavBar solo renderiza
+              />
+            </div>
+          )}
+
+          {/* SearchBar desktop — se oculta en móvil */}
+          {showSearch && (
+            <div className="header_searchbar">
+              <SearchBar placeholder="¿Qué quieres aprender?" width="100%" />
+            </div>
+          )}
+
+          {/* Botón lupa — solo visible en móvil */}
+          {showSearch && (
+            <button
+              className="search-mobile-btn"
+              onClick={() => setSearchOpen(true)}
+            >
+              <SearchIcon />
+            </button>
           )}
         </div>
-      </div>
-      {navItems.length > 0 && (
-        <div className="header__center">
-          <NavBar items={navItems} />
+        {/* ── Derecha: actions ── */}
+        <div ref={headerActionsRef} className="header_actions">
+          <div className="header_actions-wrapper">{renderedActions}</div>
+        </div>
+      </header>
+
+      {/* ── Búsqueda fullscreen móvil ── */}
+      {searchOpen && (
+        <div className="search-fullscreen">
+          <button
+            className="search-fullscreen-close"
+            onClick={() => setSearchOpen(false)}
+          >
+            ✕
+          </button>
+          <SearchBar placeholder="¿Qué quieres aprender?" width="100%" />
         </div>
       )}
-
-      <div className="header__right">
-        {showSearch && <SearchBar placeholder="¿Que quieres aprender?" />}
-        {rightActions && <div className="header__actions">{rightActions}</div>}
-      </div>
-    </header>
+    </>
   );
 };
 

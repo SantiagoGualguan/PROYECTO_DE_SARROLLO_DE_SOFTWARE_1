@@ -1,51 +1,44 @@
-import Button from "../../../../components/ui/Button/Button";
+import ButtonV2 from "../../../../components/ui/Button/Button";
 import mujer_bailando from "../../../../assets/images/mujer_bailando.png";
-/**
- * Welcome section
- *
- * el contenedor hero y content (podrían ser solo uno) ocuparian 10
- * columnas de 12 en pantallas extra grander y grandes, y 12 columnas es pantallas medianas y pequeñas
- *
- * en pantallas xl y l, el contenedor content left ocuparía las 5 columnas
- * y el contenedor contentRight ocuparia las 4 restantes.
- *
- */
-const hero = "w-full flex justify-center items-center px-28";
-const content =
-  "flex flex-row items-center gap-12 px-16 py-10 bg-[#FFDFC8] rounded-[50px] w-full";
-const contentLeft = "flex flex-col items-start gap-12 flex-1 shrink-0 p-2";
-const contentLeft_Button = "w-full flex justify-center";
-const contentRight =
-  "w-[520px] h-[520px] flex shrink-0 overflow-hidden relative";
+import mujer_bailando2 from "../../../../assets/images/mujer_bailando2.png";
+import "./HeroSection.css";
 
 const HeroSection = () => {
   return (
-    <section className={hero}>
-      <div className={content}>
-        <div className={contentLeft}>
-          <h1 className="text-[40px] font-bold text-black leading-tight">
-            ¡Bienvenido a DanceLearn!
-          </h1>
-          <p className="text-[24px] font-medium text-black">
-            Tu academia de baile online donde aprenderás a bailar tus canciones
-            favoritas, paso a paso y a tu propio ritmo.
-          </p>
-          <div className={contentLeft_Button}>
-            <Button
-              label="Empieza a bailar ahora"
-              variant="filled"
-              size="large"
-              color="var(--color-orange)"
-              onClick={() => {}}
-            />
+    <section className="hero-section">
+      <div className="container-fluid">
+        <div className="row  justify-content-center">
+          {/* Contenedor principal — 10 cols en xl/lg, 12 en md/sm */}
+          <div className="col-12 col-lg-10">
+            <div className="hero-content row align-items-center ">
+              {/* Texto — 5 cols en xl/lg, 12 en md/sm */}
+              <div className="col-12 col-lg-6 hero-left">
+                <h1 className="hero-title">¡Bienvenido a DanceLearn!</h1>
+                <p className="hero-description">
+                  Tu academia de baile online donde aprenderás a bailar tus
+                  canciones favoritas, paso a paso y a tu propio ritmo.
+                </p>
+                <div className="hero-button">
+                  <ButtonV2
+                    label="Empieza a bailar ahora"
+                    variant="contained"
+                    size="large"
+                    color="secondary"
+                    onClick={() => {}}
+                  />
+                </div>
+              </div>
+
+              {/* Imagen — 5 cols en xl/lg,*/}
+              <div className="col-12 col-lg-6 hero-right">
+                <img
+                  src={mujer_bailando2}
+                  alt="Mujer bailando"
+                  className="hero-image hero-image"
+                />
+              </div>
+            </div>
           </div>
-        </div>
-        <div className={contentRight}>
-          <img
-            src={mujer_bailando}
-            alt="Mujer bailando"
-            className="w-full h-full object-none object-[-200px_-338px]"
-          />
         </div>
       </div>
     </section>

@@ -25,24 +25,20 @@ const LandingPage = () => {
           { label: "Profesores", to: "/profesores" },
         ]}
         showSearch={true}
-        rightActions={
-          <>
-            <Button
-              label="Inicia sesión"
-              variant="filled"
-              size="medium"
-              color="var(--color-primary)"
-              onClick={() => navigate("/login")}
-            />
-            <Button
-              label="Regístrate"
-              variant="filled"
-              size="medium"
-              color="var(--color-primary)"
-              onClick={() => navigate("/registro")}
-            />
-          </>
-        }
+        rightActions={[
+          {
+            label: "Inicia sesión",
+            variant: "contained",
+            color: "primary",
+            onClick: () => navigate("/login"),
+          },
+          {
+            label: "Regístrate",
+            variant: "contained",
+            color: "primary",
+            onClick: () => navigate("/register"),
+          },
+        ]}
       />
       <HeroSection />
       <DescriptionSection />
