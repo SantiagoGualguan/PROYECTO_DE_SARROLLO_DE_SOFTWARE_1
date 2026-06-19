@@ -2,8 +2,10 @@ import ButtonV2 from "../../../../components/ui/Button/Button";
 import mujer_bailando from "../../../../assets/images/mujer_bailando.png";
 import mujer_bailando2 from "../../../../assets/images/mujer_bailando2.png";
 import "./HeroSection.css";
+import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
   return (
     <section className="hero-section">
       <div className="container-fluid">
@@ -24,7 +26,9 @@ const HeroSection = () => {
                     variant="contained"
                     size="large"
                     color="secondary"
-                    onClick={() => {}}
+                    onClick={() => {
+                      navigate("/registro");
+                    }}
                   />
                 </div>
               </div>

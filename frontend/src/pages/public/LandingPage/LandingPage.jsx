@@ -36,7 +36,7 @@ const LandingPage = () => {
             label: "Regístrate",
             variant: "contained",
             color: "primary",
-            onClick: () => navigate("/register"),
+            onClick: () => navigate("/registro"),
           },
         ]}
       />
