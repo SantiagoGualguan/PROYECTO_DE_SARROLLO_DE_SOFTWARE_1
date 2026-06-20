@@ -5,6 +5,9 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
+# cloudfare's turnstile secret key
+TURNSTILE_SECRET_KEY = os.getenv("TURNSTILE_SECRET_KEY")
+
 SECRET_KEY = os.environ.get('SECRET_KEY', 'change-me')
 
 INSTALLED_APPS = [
