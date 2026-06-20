@@ -1,67 +1,58 @@
-.register-container {
+.login-container {
   padding-top: var(--space-2xl);
   padding-bottom: var(--space-2xl);
 }
 
-/* ── Header del form: logo + títulos ── */
-.register-header {
+.login-header {
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: var(--space-md);
   margin-bottom: var(--space-xl);
 }
 
-.register-logo {
+.login-logo {
   font-family: var(--font-logo);
   font-size: var(--font-size-xl);
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--space-xl);
 }
-
-.register-logo-dance {
+.login-logo-dance {
   font-weight: 400;
   color: var(--color-text-primary);
 }
 
-.register-logo-learn {
+.login-logo-learn {
   font-weight: 700;
   color: var(--color-text-primary);
 }
 
-.register-title {
+.login-title {
   font-family: var(--font-body);
   font-size: var(--font-size-md);
-  font-weight: 700;
+  /**font-weight: 700;*/
   margin: 0;
 }
 
-.register-subtitle {
-  font-family: var(--font-body);
-  font-size: var(--font-size-sm);
-  color: #666;
-  margin: 0;
-}
-
-/* ── Formulario ── */
-.register-form {
+.login-form {
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
 }
 
-.register-login-link {
+.login-links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-lg);
+}
+
+.login-link {
   font-size: var(--font-size-xs);
   margin: 0;
 }
 
-.register-login-link-action {
+.login-link-action {
   font-weight: 700;
   cursor: pointer;
   text-decoration: underline;
   color: var(--color-text-primary);
-}
-
-/* ── CAPTCHA centrado ── */
-.register-captcha {
-  display: flex;
-  justify-content: center;
 }
