@@ -13,6 +13,8 @@ import PreviewSection from "./LandingPage/sections/PreviewSection";
 import GenresSection from "./LandingPage/sections/GenresSection";
 import TeacherSection from "./LandingPage/sections/TeacherSection";
 import Footer from "../../components/layout/Footer/Footer";
+import sideBarMenu from "../../components/layout/SidebarMenu/SidebarMenu";
+
 const LandingV2 = () => {
   return (
     <div

@@ -9,6 +9,8 @@ import SearchIcon from "@mui/icons-material/Search";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { useState, useRef, useEffect } from "react";
+import SidebarMenu from "../SidebarMenu/SidebarMenu";
+
 const Header = ({
   showMenu = false,
   showFullLogo = true,
@@ -28,6 +30,7 @@ const Header = ({
   const headerLeftRef = useRef(null);
   const headerActionsRef = useRef(null);
   const lastCenterWidthRef = useRef(0);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 600);
@@ -103,6 +106,7 @@ const Header = ({
                 variant="icon-square"
                 size={isMobile ? "small" : "medium"}
                 color="primary"
+                onClick={() => setMenuOpen(true)}
               />
             )}
           </div>
@@ -177,6 +181,11 @@ const Header = ({
           <SearchBar placeholder="¿Qué quieres aprender?" width="100%" />
         </div>
       )}
+      <SidebarMenu
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        items={navItems}
+      />
     </>
   );
 };

@@ -18,7 +18,7 @@ const LandingPage = () => {
   return (
     <div style={{ gap: "30px", display: "flex", flexDirection: "column" }}>
       <Header
-        showMenu={false}
+        showMenu={true}
         showFullLogo={true}
         navItems={[
           { label: "Coreografías", to: "/catalogo" },
