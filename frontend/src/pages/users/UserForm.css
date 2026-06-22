@@ -1,0 +1,41 @@
+.userform-container {
+  padding-top: var(--space-2xl);
+  padding-bottom: var(--space-2xl);
+}
+
+.userform-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xl);
+}
+
+.userform-title {
+  font-family: var(--font-body);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.userform-subtitle {
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  color: #666;
+  margin: 0;
+}
+
+.userform-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.userform-actions {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.userform-actions > * {
+  flex: 1;
+}

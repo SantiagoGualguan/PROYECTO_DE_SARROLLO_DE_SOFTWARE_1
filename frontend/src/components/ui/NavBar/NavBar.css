@@ -1,11 +1,25 @@
-/*NavBar styles*/
+/* ── Modo normal ── */
+.nav {
+  display: flex;
+  align-items: stretch;
+  background-color: transparent;
+  height: 100%;
+  position: relative; /* necesario para el dropdown absoluto */
+}
+
+.nav-items {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-xl);
+  white-space: nowrap; /* evita que los items se partan en dos líneas */
+}
 
 .nav-item {
+  display: inline-flex;
+  align-items: center;
   font-family: var(--font-body);
-  font-size: var(--font-size-md);
   color: var(--color-text-primary);
   text-decoration: none;
-  padding-bottom: var(--space-xs);
   border-bottom: 4px solid transparent;
   transition: all 0.3s ease;
 }
@@ -14,4 +28,66 @@
 .nav-item:hover {
   font-weight: 600;
   border-bottom: 3px solid var(--color-text-primary);
+}
+
+/* ── Modo desplegable ── */
+.nav--dropdown {
+  align-items: center;
+}
+
+.nav-dropdown-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  padding: var(--space-sm) var(--space-xs);
+  border-radius: var(--radius-md);
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.nav-dropdown-btn:hover {
+  background-color: var(--color-hover-overlay);
+}
+
+/* ── Menú desplegable ── */
+.nav-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: white;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  padding: var(--space-sm) 0;
+  z-index: 100;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-dropdown-item {
+  display: block;
+  padding: var(--space-md) var(--space-xl);
+  font-family: var(--font-body);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.nav-dropdown-item:hover {
+  background-color: black;
+  color: white;
+}
+
+.nav-dropdown-item--active {
+  font-weight: 600;
+  background-color: black;
+  color: white;
 }

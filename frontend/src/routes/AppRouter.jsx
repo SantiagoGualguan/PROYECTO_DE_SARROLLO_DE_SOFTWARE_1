@@ -8,6 +8,7 @@ import NotFound from "../pages/public/NotFound";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import RecoverPassword from "../pages/auth/RecoverPassword";
+import TeacherApplication from "../pages/auth/TeacherApplication";
 
 import AdminDashboard from "../pages/dashboard/AdminDashboard";
 import DirectorDashboard from "../pages/dashboard/DirectorDashboard";
@@ -29,6 +30,9 @@ import SaleConfirmation from "../pages/sales/SaleConfirmation";
 import PurchaseHistory from "../pages/sales/PurchaseHistory";
 
 import ProtectedRoute from "../components/common/ProtectedRoute";
+import LandingPageV2 from "../pages/public/LandingPageV2";
+
+import TeacherApplicationList from "../pages/users/TeacherApplicationList";
 
 // RUTAS PÚBLICAS (sin auth):
 // / → LandingPage
@@ -54,9 +58,11 @@ const AppRouter = () => {
       {/* Públicas */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/catalogo" element={<CatalogPublic />} />
+      <Route path="/landing-v2" element={<LandingPageV2 />} />
       <Route path="/login" element={<Login />} />
       <Route path="/registro" element={<Register />} />
       <Route path="/recuperar-clave" element={<RecoverPassword />} />
+      <Route path="/solicitud-profesor" element={<TeacherApplication />} />
 
       {/* Dashboard: redirección según rol (TODO: implementar lógica real) */}
       <Route
@@ -68,7 +74,7 @@ const AppRouter = () => {
         }
       />
 
-      {/* Administración de usuarios */}
+      {/**{/* Administración de usuarios   NO ELIMINAR, DEBE QUEDAR ASI
       <Route
         path="/admin/usuarios"
         element={
@@ -76,14 +82,26 @@ const AppRouter = () => {
             <UserList />
           </ProtectedRoute>
         }
-      />
-      <Route
+      />*/}
+
+      {/* Administración de usuarios */}
+      <Route path="/admin/usuarios" element={<UserList />} />
+
+      {/**<Route
         path="/admin/usuarios/new"
         element={
           <ProtectedRoute allowedRoles={["admin", "director"]}>
             <UserForm />
           </ProtectedRoute>
         }
+      />*/}
+
+      <Route path="/admin/usuarios/new" element={<UserForm />} />
+
+      {/* Lista de solicitudes de profesor (solo para director) */}
+      <Route
+        path="/director/solicitudes"
+        element={<TeacherApplicationList />}
       />
 
       {/* Coreografías */}

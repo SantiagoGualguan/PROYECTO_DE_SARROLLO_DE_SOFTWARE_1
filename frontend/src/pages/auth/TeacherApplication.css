@@ -1,0 +1,75 @@
+.teacher-container {
+  padding-top: var(--space-2xl);
+  padding-bottom: var(--space-2xl);
+}
+
+.teacher-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xl);
+}
+
+.teacher-logo {
+  font-family: var(--font-logo);
+  font-size: var(--font-size-xl);
+  margin: 0;
+}
+
+.teacher-logo-dance {
+  font-weight: 400;
+  color: var(--color-text-primary);
+}
+
+.teacher-logo-learn {
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.teacher-title {
+  font-family: var(--font-body);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  margin: 0;
+}
+
+.teacher-subtitle {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  color: #666;
+  margin: 0;
+}
+
+.teacher-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.teacher-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.teacher-field-label {
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  color: #666;
+  margin: 0;
+}
+
+.teacher-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.teacher-actions {
+  display: flex;
+  gap: var(--space-md);
+}
+
+.teacher-actions > * {
+  flex: 1;
+}
