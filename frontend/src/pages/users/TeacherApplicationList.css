@@ -1,0 +1,45 @@
+.teacher-app-container {
+  padding-top: var(--space-2xl);
+  padding-bottom: var(--space-2xl);
+}
+
+.teacher-app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-xl);
+}
+
+.teacher-app-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.teacher-app-title {
+  font-family: var(--font-body);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.teacher-app-subtitle {
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  color: #666;
+  margin: 0;
+}
+
+.teacher-app-table {
+  background-color: #fff;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.teacher-app-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}

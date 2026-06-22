@@ -32,6 +32,8 @@ import PurchaseHistory from "../pages/sales/PurchaseHistory";
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import LandingPageV2 from "../pages/public/LandingPageV2";
 
+import TeacherApplicationList from "../pages/users/TeacherApplicationList";
+
 // RUTAS PÚBLICAS (sin auth):
 // / → LandingPage
 // /catalogo → CatalogPublic
@@ -95,6 +97,12 @@ const AppRouter = () => {
       />*/}
 
       <Route path="/admin/usuarios/new" element={<UserForm />} />
+
+      {/* Lista de solicitudes de profesor (solo para director) */}
+      <Route
+        path="/director/solicitudes"
+        element={<TeacherApplicationList />}
+      />
 
       {/* Coreografías */}
       <Route
