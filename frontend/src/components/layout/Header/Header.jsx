@@ -15,6 +15,7 @@ const Header = ({
   showMenu = false,
   showFullLogo = true,
   navItems = [],
+  menuItems = [],
   showSearch = false,
   rightActions = [],
   className = "",
@@ -184,7 +185,7 @@ const Header = ({
       <SidebarMenu
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
-        items={navItems}
+        items={menuItems.length > 0 ? menuItems : navItems}
       />
     </>
   );

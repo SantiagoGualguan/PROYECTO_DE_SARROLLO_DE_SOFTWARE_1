@@ -21,6 +21,19 @@ const Register = () => {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [captchaToken, setCaptchaToken] = useState(null);
 
+  const [form, setForm] = useState({
+    nombres: "",
+    apellidos: "",
+    telefono: "",
+    correo: "",
+    password: "",
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
   return (
     <div>
       <Header
@@ -56,12 +69,18 @@ const Register = () => {
                 variant="outlined"
                 fullWidth
                 size="medium"
+                name="nombres"
+                value={form.nombres}
+                onChange={handleChange}
               />
               <TextField
                 label="Apellidos"
                 variant="outlined"
                 fullWidth
                 size="medium"
+                name="apellidos"
+                value={form.apellidos}
+                onChange={handleChange}
               />
 
               <TextField
@@ -69,6 +88,9 @@ const Register = () => {
                 variant="outlined"
                 fullWidth
                 size="medium"
+                name="telefono"
+                value={form.telefono}
+                onChange={handleChange}
               />
 
               <TextField
@@ -77,6 +99,9 @@ const Register = () => {
                 fullWidth
                 size="medium"
                 type="email"
+                name="correo"
+                value={form.correo}
+                onChange={handleChange}
               />
 
               <TextField
@@ -84,6 +109,9 @@ const Register = () => {
                 variant="outlined"
                 fullWidth
                 size="medium"
+                name="password"
+                value={form.password}
+                onChange={handleChange}
                 type={showPassword ? "text" : "password"}
                 slotProps={{
                   input: {
@@ -109,6 +137,16 @@ const Register = () => {
                   onClick={() => navigate("/login")}
                 >
                   Inicia sesión aquí
+                </span>
+              </p>
+
+              <p className="register-login-link">
+                ¿Quieres ser profesor?{" "}
+                <span
+                  className="register-login-link-action"
+                  onClick={() => navigate("/solicitud-profesor")}
+                >
+                  Manda tu solicitud aquí
                 </span>
               </p>
 

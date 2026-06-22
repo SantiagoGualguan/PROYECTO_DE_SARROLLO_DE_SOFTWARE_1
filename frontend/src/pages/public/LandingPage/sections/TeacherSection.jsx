@@ -1,8 +1,10 @@
 import "./TeacherSection.css";
 import teacher from "../../../../assets/images/teacherDance.png";
 import ButtonV2 from "../../../../components/ui/Button/Button";
+import { useNavigate } from "react-router-dom";
 
 const TeacherSection = () => {
+  const navigate = useNavigate();
   return (
     <section className="teacher-section">
       <div className="container-fluid">
@@ -35,7 +37,9 @@ const TeacherSection = () => {
                 variant="contained"
                 size="large"
                 color="primary"
-                onClick={() => {}}
+                onClick={() => {
+                  navigate("/solicitud-profesor");
+                }}
               />
             </div>
           </div>

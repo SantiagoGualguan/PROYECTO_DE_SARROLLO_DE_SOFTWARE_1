@@ -19,6 +19,15 @@ const Login = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [captchaToken, setCaptchaToken] = useState(null);
+  const [form, setForm] = useState({
+    correo: "",
+    password: "",
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
 
   return (
     <div>
@@ -51,6 +60,9 @@ const Login = () => {
             <div className="login-form">
               <TextField
                 label="Correo electrónico"
+                name="correo"
+                value={form.correo}
+                onChange={handleChange}
                 variant="outlined"
                 fullWidth
                 size="medium"
@@ -58,6 +70,9 @@ const Login = () => {
               />
               <TextField
                 label="Contraseña"
+                name="password"
+                value={form.password}
+                onChange={handleChange}
                 variant="outlined"
                 fullWidth
                 size="medium"
