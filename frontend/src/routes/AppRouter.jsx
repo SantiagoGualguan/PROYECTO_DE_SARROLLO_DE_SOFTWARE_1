@@ -101,7 +101,11 @@ const AppRouter = () => {
       {/* Lista de solicitudes de profesor (solo para director) */}
       <Route
         path="/director/solicitudes"
-        element={<TeacherApplicationList />}
+        element={
+          <ProtectedRoute allowedRoles={["director", "admin"]}>
+            <TeacherApplicationList />
+          </ProtectedRoute>
+        }
       />
 
       {/* Coreografías */}

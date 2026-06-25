@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import Header from "../../components/layout/Header/Header.jsx";
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TextField, IconButton, InputAdornment, MenuItem } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import Button from "../../components/ui/Button/Button.jsx";
+import { UserService } from "../../api/userService.js";
 import "./UserForm.css";
 
 const ROLES = [
@@ -15,20 +15,70 @@ const ROLES = [
 const UserForm = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(null);
 
   const [form, setForm] = useState({
-    u_name: "",
-    last_name: "",
-    email: "",
-    phone: "",
-    u_password: "",
-    u_type: "",
+    nombre: "",
+    apellido: "",
+    correo: "",
+    identificacion: "",
+    contrasena: "",
+    rol: "",
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
+
+  const handleSubmit = async () => {
+    setSuccess(null);
+    setError(null);
+    setLoading(true);
+
+    try {
+      const { data } = await UserService.createInternalUser({
+        nombre: `${form.nombre} ${form.apellido}`.trim(),
+        correo: form.correo,
+        identificacion: form.identificacion,
+        contrasena: form.contrasena,
+        rol: form.rol,
+      });
+
+      // Limpiar formulario y mostrar éxito
+      setForm({
+        nombre: "",
+        apellido: "",
+        correo: "",
+        identificacion: "",
+        contrasena: "",
+        rol: "",
+      });
+
+      setSuccess(`Usuario ${data.user.nombre} creado con éxito.`);
+    } catch (err) {
+      const data = err.response?.data;
+      if (data?.detail) {
+        setError(data.detail);
+      } else if (data) {
+        setError(Object.values(data).flat().join(" "));
+      } else {
+        setError("Error al crear el usuario. Intenta de nuevo.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isFormValid =
+    form.nombre &&
+    form.apellido &&
+    form.correo &&
+    form.identificacion &&
+    form.contrasena &&
+    form.rol;
 
   return (
     <div>
@@ -63,16 +113,16 @@ const UserForm = () => {
                 label="Nombre"
                 variant="outlined"
                 fullWidth
-                name="u_name"
-                value={form.u_name}
+                name="nombre"
+                value={form.nombre}
                 onChange={handleChange}
               />
               <TextField
                 label="Apellido"
                 variant="outlined"
                 fullWidth
-                name="last_name"
-                value={form.last_name}
+                name="apellido"
+                value={form.apellido}
                 onChange={handleChange}
               />
               <TextField
@@ -80,25 +130,25 @@ const UserForm = () => {
                 variant="outlined"
                 fullWidth
                 type="email"
-                name="email"
-                value={form.email}
+                name="correo"
+                value={form.correo}
                 onChange={handleChange}
               />
               <TextField
-                label="Teléfono"
+                label="Teléfono / Identificación"
                 variant="outlined"
                 fullWidth
-                name="phone"
-                value={form.phone}
+                name="identificacion"
+                value={form.identificacion}
                 onChange={handleChange}
               />
               <TextField
                 label="Contraseña"
                 variant="outlined"
                 fullWidth
-                name="u_password"
+                name="contrasena"
                 type={showPassword ? "text" : "password"}
-                value={form.u_password}
+                value={form.contrasena}
                 onChange={handleChange}
                 slotProps={{
                   input: {
@@ -122,8 +172,8 @@ const UserForm = () => {
                 variant="outlined"
                 fullWidth
                 select
-                name="u_type"
-                value={form.u_type}
+                name="rol"
+                value={form.rol}
                 onChange={handleChange}
               >
                 {ROLES.map(({ value, label }) => (
@@ -133,6 +183,15 @@ const UserForm = () => {
                 ))}
               </TextField>
 
+              {success && (
+                <p style={{ color: "green", fontSize: "0.875rem" }}>
+                  {success}
+                </p>
+              )}
+              {error && (
+                <p style={{ color: "red", fontSize: "0.875rem" }}>{error}</p>
+              )}
+
               {/* ── Botones ── */}
               <div className="userform-actions">
                 <Button
@@ -140,21 +199,24 @@ const UserForm = () => {
                   variant="outlined"
                   color="primary"
                   size="large"
-                  onClick={() => navigate("/admin/usuarios")}
+                  onClick={() =>
+                    setForm({
+                      nombre: "",
+                      apellido: "",
+                      correo: "",
+                      identificacion: "",
+                      contrasena: "",
+                      rol: "",
+                    })
+                  }
                 />
                 <Button
-                  label="CREAR USUARIO"
+                  label={loading ? "Creando..." : "Crear usuario"}
                   variant="contained"
                   color="primary"
                   size="large"
-                  disabled={
-                    !form.u_name ||
-                    !form.last_name ||
-                    !form.email ||
-                    !form.phone ||
-                    !form.u_password ||
-                    !form.u_type
-                  }
+                  disabled={!isFormValid || loading}
+                  onClick={handleSubmit}
                 />
               </div>
             </div>

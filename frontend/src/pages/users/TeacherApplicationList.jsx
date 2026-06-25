@@ -1,85 +1,73 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { DataGrid } from "@mui/x-data-grid";
 import { Chip, IconButton, Tooltip } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import Header from "../../components/layout/Header/Header.jsx";
+import { UserService } from "../../api/userService.js";
 import "./TeacherApplicationList.css";
 
-// ── Datos mock — profesores con validated = false ──
-const MOCK_APPLICATIONS = [
-  {
-    id: 1,
-    u_name: "Valentina",
-    last_name: "Castro",
-    email: "vale@gmail.com",
-    phone: "3001234567",
-    is_active: true,
-    validated: false,
-    creation_date: "2025-06-01",
-  },
-  {
-    id: 2,
-    u_name: "Diego",
-    last_name: "Morales",
-    email: "diego@gmail.com",
-    phone: "3107654321",
-    is_active: true,
-    validated: false,
-    creation_date: "2025-06-05",
-  },
-  {
-    id: 3,
-    u_name: "Camila",
-    last_name: "Herrera",
-    email: "camila@gmail.com",
-    phone: "3209876543",
-    is_active: true,
-    validated: false,
-    creation_date: "2025-06-10",
-  },
-  {
-    id: 4,
-    u_name: "Sebastián",
-    last_name: "Vargas",
-    email: "sebas@gmail.com",
-    phone: "3154321098",
-    is_active: true,
-    validated: false,
-    creation_date: "2025-06-12",
-  },
-];
-
-const teacherApplicationList = () => {
+const TeacherApplicationList = () => {
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const [applications, setApplications] = useState(MOCK_APPLICATIONS);
 
-  const handleAccept = (id) => {
-    setApplications((prev) =>
-      prev.map((app) => (app.id === id ? { ...app, validated: true } : app)),
-    );
+  const fetchApplications = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data } = await UserService.getInternalUsers("profesor");
+      // Mostrar todos los profesores — la tabla muestra el estado de cada uno
+      setApplications(data.results);
+    } catch (err) {
+      setError(
+        err.response?.data?.detail || "Error al cargar las solicitudes.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleReject = (id) => {
-    setApplications((prev) =>
-      prev.map((app) => (app.id === id ? { ...app, is_active: false } : app)),
-    );
+  useEffect(() => {
+    fetchApplications();
+  }, []);
+
+  const handleAccept = async (id) => {
+    try {
+      await UserService.updateInternalUser(id, {
+        validated: true,
+        is_active: true,
+      });
+      fetchApplications();
+    } catch (err) {
+      setError(err.response?.data?.detail || "Error al aceptar la solicitud.");
+    }
+  };
+
+  const handleReject = async (id) => {
+    try {
+      await UserService.updateInternalUser(id, {
+        is_active: false,
+      });
+      fetchApplications();
+    } catch (err) {
+      setError(err.response?.data?.detail || "Error al rechazar la solicitud.");
+    }
   };
 
   const columns = [
     { field: "id", headerName: "ID", width: 60 },
-    { field: "u_name", headerName: "Nombre", flex: 1, minWidth: 120 },
-    { field: "last_name", headerName: "Apellido", flex: 1, minWidth: 120 },
-    { field: "email", headerName: "Correo", flex: 2, minWidth: 180 },
-    { field: "phone", headerName: "Teléfono", flex: 1, minWidth: 130 },
-    { field: "creation_date", headerName: "Fecha solicitud", width: 130 },
+    { field: "nombre", headerName: "Nombre completo", flex: 1, minWidth: 160 },
+    { field: "correo", headerName: "Correo", flex: 2, minWidth: 180 },
+    { field: "identificacion", headerName: "Teléfono", flex: 1, minWidth: 130 },
     {
-      field: "status",
+      field: "validated",
       headerName: "Estado",
       width: 130,
       renderCell: ({ row }) => {
-        if (row.validated) {
+        if (row.validated && row.is_active) {
           return (
             <Chip
               label="Aceptado"
@@ -132,9 +120,7 @@ const teacherApplicationList = () => {
                 <IconButton
                   onClick={() => handleAccept(row.id)}
                   disabled={!isPending}
-                  sx={{
-                    color: isPending ? "#2e7d32" : "#ccc",
-                  }}
+                  sx={{ color: isPending ? "#2e7d32" : "#ccc" }}
                 >
                   <CheckIcon />
                 </IconButton>
@@ -145,9 +131,7 @@ const teacherApplicationList = () => {
                 <IconButton
                   onClick={() => handleReject(row.id)}
                   disabled={!isPending}
-                  sx={{
-                    color: isPending ? "#c2185b" : "#ccc",
-                  }}
+                  sx={{ color: isPending ? "#c2185b" : "#ccc" }}
                 >
                   <HighlightOffIcon />
                 </IconButton>
@@ -158,6 +142,7 @@ const teacherApplicationList = () => {
       },
     },
   ];
+
   const pending = applications.filter(
     (a) => !a.validated && a.is_active,
   ).length;
@@ -175,6 +160,7 @@ const teacherApplicationList = () => {
         ]}
         menuItems={[
           { label: "Solicitudes de profesores", to: "/director/solicitudes" },
+          { label: "Usuarios", to: "/admin/usuarios" },
         ]}
       />
 
@@ -186,17 +172,31 @@ const teacherApplicationList = () => {
               <div className="teacher-app-header-text">
                 <h1 className="teacher-app-title">Solicitudes de profesores</h1>
                 <p className="teacher-app-subtitle">
-                  {pending} solicitud{pending !== 1 ? "es" : ""} pendiente
-                  {pending !== 1 ? "s" : ""}
+                  {loading
+                    ? "Cargando..."
+                    : `${pending} solicitud${pending !== 1 ? "es" : ""} pendiente${pending !== 1 ? "s" : ""}`}
                 </p>
               </div>
             </div>
+
+            {error && (
+              <p
+                style={{
+                  color: "red",
+                  fontSize: "0.875rem",
+                  marginBottom: "1rem",
+                }}
+              >
+                {error}
+              </p>
+            )}
 
             {/* ── Tabla ── */}
             <div className="teacher-app-table">
               <DataGrid
                 rows={applications}
                 columns={columns}
+                loading={loading}
                 initialState={{
                   pagination: { paginationModel: { pageSize: 10 } },
                 }}
@@ -226,4 +226,4 @@ const teacherApplicationList = () => {
   );
 };
 
-export default teacherApplicationList;
+export default TeacherApplicationList;
