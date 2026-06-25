@@ -1,81 +1,22 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../../components/layout/Header/Header.jsx";
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DataGrid } from "@mui/x-data-grid";
-import { Chip } from "@mui/material";
+import {
+  Chip,
+  IconButton,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 import Button from "../../components/ui/Button/Button.jsx";
+import { UserService } from "../../api/userService.js";
 import "./UserList.css";
-
-// ── Datos mock ──
-const MOCK_USERS = [
-  {
-    id: 1,
-    u_name: "Carlos",
-    last_name: "Pérez",
-    email: "carlos@gmail.com",
-    phone: "3001234567",
-    u_type: "admin",
-    is_active: true,
-    validated: true,
-    creation_date: "2025-01-10",
-  },
-  {
-    id: 2,
-    u_name: "Laura",
-    last_name: "Gómez",
-    email: "laura@gmail.com",
-    phone: "3107654321",
-    u_type: "director",
-    is_active: true,
-    validated: true,
-    creation_date: "2025-02-14",
-  },
-  {
-    id: 3,
-    u_name: "Andrés",
-    last_name: "Torres",
-    email: "andres@gmail.com",
-    phone: "3209876543",
-    u_type: "profesor",
-    is_active: false,
-    validated: false,
-    creation_date: "2025-03-05",
-  },
-  {
-    id: 4,
-    u_name: "María",
-    last_name: "Ruiz",
-    email: "maria@gmail.com",
-    phone: "3154321098",
-    u_type: "client",
-    is_active: true,
-    validated: true,
-    creation_date: "2025-04-20",
-  },
-  {
-    id: 5,
-    u_name: "Juan",
-    last_name: "Martínez",
-    email: "juan@gmail.com",
-    phone: "3001112233",
-    u_type: "client",
-    is_active: true,
-    validated: false,
-    creation_date: "2025-05-01",
-  },
-  {
-    id: 6,
-    u_name: "Sofía",
-    last_name: "López",
-    email: "sofia@gmail.com",
-    phone: "3209998877",
-    u_type: "profesor",
-    is_active: true,
-    validated: true,
-    creation_date: "2025-05-15",
-  },
-];
 
 const ROL_COLORS = {
   admin: { bg: "#fce4ec", color: "#c2185b" },
@@ -84,67 +25,138 @@ const ROL_COLORS = {
   client: { bg: "#fff3e0", color: "#e65100" },
 };
 
-const columns = [
-  { field: "id", headerName: "ID", width: 60 },
-  { field: "u_name", headerName: "Nombre", flex: 1, minWidth: 120 },
-  { field: "last_name", headerName: "Apellido", flex: 1, minWidth: 120 },
-  { field: "email", headerName: "Correo", flex: 2, minWidth: 180 },
-  { field: "phone", headerName: "Teléfono", flex: 1, minWidth: 130 },
-  {
-    field: "u_type",
-    headerName: "Rol",
-    width: 120,
-    renderCell: ({ value }) => (
-      <Chip
-        label={value}
-        size="small"
-        sx={{
-          backgroundColor: ROL_COLORS[value]?.bg,
-          color: ROL_COLORS[value]?.color,
-          fontWeight: 600,
-          fontSize: "0.75rem",
-        }}
-      />
-    ),
-  },
-  {
-    field: "is_active",
-    headerName: "Activo",
-    width: 90,
-    renderCell: ({ value }) => (
-      <Chip
-        label={value ? "Sí" : "No"}
-        size="small"
-        sx={{
-          backgroundColor: value ? "#e8f5e9" : "#fce4ec",
-          color: value ? "#2e7d32" : "#c2185b",
-          fontWeight: 600,
-        }}
-      />
-    ),
-  },
-  {
-    field: "validated",
-    headerName: "Validado",
-    width: 100,
-    renderCell: ({ value }) => (
-      <Chip
-        label={value ? "Sí" : "No"}
-        size="small"
-        sx={{
-          backgroundColor: value ? "#e8f5e9" : "#fff3e0",
-          color: value ? "#2e7d32" : "#e65100",
-          fontWeight: 600,
-        }}
-      />
-    ),
-  },
-  { field: "creation_date", headerName: "Creado", width: 110 },
-];
-
 const UserList = () => {
   const navigate = useNavigate();
-  const [users] = useState(MOCK_USERS);
+
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Estado para el diálogo de confirmación de eliminación
+  const [deleteDialog, setDeleteDialog] = useState({
+    open: false,
+    userId: null,
+    userName: "",
+  });
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data } = await UserService.getInternalUsers();
+      setUsers(data.results);
+    } catch (err) {
+      setError(err.response?.data?.detail || "Error al cargar los usuarios.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleDeleteClick = (userId, userName) => {
+    setDeleteDialog({ open: true, userId, userName });
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await UserService.deleteInternalUser(deleteDialog.userId);
+      setDeleteDialog({ open: false, userId: null, userName: "" });
+      // Recargar la lista después de eliminar
+      fetchUsers();
+    } catch (err) {
+      setError(err.response?.data?.detail || "Error al eliminar el usuario.");
+      setDeleteDialog({ open: false, userId: null, userName: "" });
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialog({ open: false, userId: null, userName: "" });
+  };
+
+  const columns = [
+    { field: "id", headerName: "ID", width: 60 },
+    { field: "nombre", headerName: "Nombre", flex: 1, minWidth: 150 },
+    { field: "correo", headerName: "Correo", flex: 2, minWidth: 180 },
+    { field: "identificacion", headerName: "Teléfono", flex: 1, minWidth: 130 },
+    {
+      field: "rol",
+      headerName: "Rol",
+      width: 120,
+      renderCell: ({ value }) => (
+        <Chip
+          label={value}
+          size="small"
+          sx={{
+            backgroundColor: ROL_COLORS[value]?.bg,
+            color: ROL_COLORS[value]?.color,
+            fontWeight: 600,
+            fontSize: "0.75rem",
+          }}
+        />
+      ),
+    },
+    {
+      field: "is_active",
+      headerName: "Activo",
+      width: 90,
+      renderCell: ({ value }) => (
+        <Chip
+          label={value ? "Sí" : "No"}
+          size="small"
+          sx={{
+            backgroundColor: value ? "#e8f5e9" : "#fce4ec",
+            color: value ? "#2e7d32" : "#c2185b",
+            fontWeight: 600,
+          }}
+        />
+      ),
+    },
+    {
+      field: "validated",
+      headerName: "Validado",
+      width: 100,
+      renderCell: ({ value }) => (
+        <Chip
+          label={value ? "Sí" : "No"}
+          size="small"
+          sx={{
+            backgroundColor: value ? "#e8f5e9" : "#fff3e0",
+            color: value ? "#2e7d32" : "#e65100",
+            fontWeight: 600,
+          }}
+        />
+      ),
+    },
+    {
+      field: "acciones",
+      headerName: "Acciones",
+      width: 110,
+      sortable: false,
+      renderCell: ({ row }) => (
+        <>
+          <Tooltip title="Editar">
+            <IconButton
+              size="small"
+              onClick={() => navigate(`/admin/usuarios/${row.id}/edit`)}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Eliminar">
+            <IconButton
+              size="small"
+              onClick={() => handleDeleteClick(row.id, row.nombre)}
+            >
+              <DeleteIcon fontSize="small" sx={{ color: "#c2185b" }} />
+            </IconButton>
+          </Tooltip>
+        </>
+      ),
+    },
+  ];
 
   return (
     <div>
@@ -157,7 +169,6 @@ const UserList = () => {
           { label: "Coreografías", to: "/coreografias" },
         ]}
         menuItems={[
-          // ← items exclusivos del sidebar
           { label: "Lista de usuarios", to: "/admin/usuarios" },
           { label: "Crear usuario", to: "/admin/usuarios/new" },
         ]}
@@ -170,7 +181,9 @@ const UserList = () => {
               <div className="userlist-header-text">
                 <h1 className="userlist-title">Usuarios</h1>
                 <p className="userlist-subtitle">
-                  {users.length} usuarios registrados
+                  {loading
+                    ? "Cargando..."
+                    : `${users.length} usuarios registrados`}
                 </p>
               </div>
               <Button
@@ -182,10 +195,23 @@ const UserList = () => {
               />
             </div>
 
+            {error && (
+              <p
+                style={{
+                  color: "red",
+                  fontSize: "0.875rem",
+                  marginBottom: "1rem",
+                }}
+              >
+                {error}
+              </p>
+            )}
+
             <div className="userlist-table">
               <DataGrid
                 rows={users}
                 columns={columns}
+                loading={loading}
                 initialState={{
                   pagination: { paginationModel: { pageSize: 10 } },
                 }}
@@ -211,6 +237,34 @@ const UserList = () => {
           </div>
         </div>
       </div>
+
+      {/* Diálogo de confirmación de eliminación */}
+      <Dialog open={deleteDialog.open} onClose={handleDeleteCancel}>
+        <DialogTitle>Confirmar eliminación</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            ¿Estás seguro de que deseas eliminar a{" "}
+            <strong>{deleteDialog.userName}</strong>? Esta acción desactivará al
+            usuario.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            label="Cancelar"
+            variant="outlined"
+            color="primary"
+            size="medium"
+            onClick={handleDeleteCancel}
+          />
+          <Button
+            label="Eliminar"
+            variant="contained"
+            color="primary"
+            size="medium"
+            onClick={handleDeleteConfirm}
+          />
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

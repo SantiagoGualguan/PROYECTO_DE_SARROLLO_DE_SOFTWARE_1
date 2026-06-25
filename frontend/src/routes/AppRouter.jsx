@@ -74,7 +74,7 @@ const AppRouter = () => {
         }
       />
 
-      {/**{/* Administración de usuarios   NO ELIMINAR, DEBE QUEDAR ASI
+      {/* Administración de usuarios   NO ELIMINAR, DEBE QUEDAR ASI*/}
       <Route
         path="/admin/usuarios"
         element={
@@ -82,21 +82,21 @@ const AppRouter = () => {
             <UserList />
           </ProtectedRoute>
         }
-      />*/}
+      />
 
-      {/* Administración de usuarios */}
-      <Route path="/admin/usuarios" element={<UserList />} />
+      {/* Administración de usuarios 
+      <Route path="/admin/usuarios" element={<UserList />} />*/}
 
-      {/**<Route
+      <Route
         path="/admin/usuarios/new"
         element={
           <ProtectedRoute allowedRoles={["admin", "director"]}>
             <UserForm />
           </ProtectedRoute>
         }
-      />*/}
+      />
 
-      <Route path="/admin/usuarios/new" element={<UserForm />} />
+      {/** <Route path="/admin/usuarios/new" element={<UserForm />} />*/}
 
       {/* Lista de solicitudes de profesor (solo para director) */}
       <Route
