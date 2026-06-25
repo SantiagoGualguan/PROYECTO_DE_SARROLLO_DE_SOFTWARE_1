@@ -14,6 +14,7 @@ import {
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import Header from "../../components/layout/Header/Header.jsx";
 import Button from "../../components/ui/Button/Button.jsx";
+import { AuthService } from "../../api/authService.js";
 import "./TeacherApplication.css";
 
 const GENEROS = ["Salsa", "Cumbia", "Reggaeton", "Bachata", "Hip-hop", "Otro"];
@@ -22,8 +23,11 @@ const STEPS = ["Datos personales", "Información profesional"];
 
 const TeacherApplication = () => {
   const navigate = useNavigate();
+
   const [activeStep, setActiveStep] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const [step1, setStep1] = useState({
     nombres: "",
@@ -34,15 +38,15 @@ const TeacherApplication = () => {
   });
 
   const [step2, setStep2] = useState({
-    nombreArtistico: "",
+    nombreArtistico: "", // TODO: pendiente, no existe en BD
     bio: "",
-    generosSeleccionados: [],
-    otroGenero: "",
-    nivel: "",
+    generosSeleccionados: [], // TODO: pendiente, no existe en BD
+    otroGenero: "", // TODO: pendiente, no existe en BD
+    nivel: "", // TODO: pendiente, no existe en BD
     aniosExperiencia: "",
-    aniosEnsenando: "",
-    linkVideo: "",
-    linkRedes: "",
+    aniosEnsenando: "", // TODO: pendiente, no existe en BD (years_of_experience cubre experiencia bailando)
+    linkVideo: "", // TODO: pendiente, no existe en BD
+    linkRedes: "", // TODO: pendiente, no existe en BD
     acceptTerms: false,
     confirmInfo: false,
   });
@@ -73,6 +77,48 @@ const TeacherApplication = () => {
     setStep2((prev) => ({ ...prev, nivel: n }));
   };
 
+  const handleSubmit = async () => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const response = await AuthService.register({
+        first_name: step1.nombres,
+        last_name: step1.apellidos,
+        phone: step1.telefono,
+        email: step1.correo,
+        password: step1.password,
+        role: "profesor",
+        biography: step2.bio,
+        years_of_experience: parseInt(step2.aniosExperiencia) || 0,
+        billing_information: "",
+      });
+
+      navigate("/login", {
+        state: {
+          mensaje:
+            "Tu solicitud fue enviada con éxito. El director revisará tu perfil y te notificará cuando sea aprobado.",
+        },
+      });
+    } catch (err) {
+      const data = err.response?.data;
+      if (data) {
+        if (data.detail) {
+          setError(data.detail);
+        } else {
+          const mensajes = Object.values(data).flat();
+          setError(mensajes.join(" "));
+        }
+      } else {
+        setError("Error al enviar la solicitud. Intenta de nuevo.");
+      }
+      // Volver al paso 1 si el error es de datos personales
+      setActiveStep(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div>
       <Header
@@ -92,7 +138,6 @@ const TeacherApplication = () => {
       <div className="container teacher-container">
         <div className="row justify-content-center">
           <div className="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
-            {/* ── Logo y título ── */}
             <div className="teacher-header">
               <p className="teacher-logo">
                 <span className="teacher-logo-dance">Dance</span>
@@ -104,7 +149,6 @@ const TeacherApplication = () => {
               </p>
             </div>
 
-            {/* ── Stepper ── */}
             <Stepper
               activeStep={activeStep}
               sx={{ marginBottom: "var(--space-xl)" }}
@@ -131,7 +175,7 @@ const TeacherApplication = () => {
               ))}
             </Stepper>
 
-            {/* ── Paso 1 ── */}
+            {/* Paso 1 */}
             {activeStep === 0 && (
               <div className="teacher-form">
                 <TextField
@@ -190,8 +234,13 @@ const TeacherApplication = () => {
                     },
                   }}
                 />
+
+                {error && (
+                  <p style={{ color: "red", fontSize: "0.875rem" }}>{error}</p>
+                )}
+
                 <Button
-                  label="SIGUIENTE"
+                  label="Siguiente"
                   variant="contained"
                   color="primary"
                   size="large"
@@ -200,7 +249,7 @@ const TeacherApplication = () => {
               </div>
             )}
 
-            {/* ── Paso 2 ── */}
+            {/* Paso 2 */}
             {activeStep === 1 && (
               <div className="teacher-form">
                 <TextField
@@ -210,6 +259,7 @@ const TeacherApplication = () => {
                   name="nombreArtistico"
                   value={step2.nombreArtistico}
                   onChange={handleStep2Change}
+                  helperText="Pendiente de implementar en BD"
                 />
                 <TextField
                   label="Biografía corta"
@@ -222,7 +272,6 @@ const TeacherApplication = () => {
                   onChange={handleStep2Change}
                 />
 
-                {/* ── Géneros ── */}
                 <div className="teacher-field-group">
                   <p className="teacher-field-label">Géneros de baile</p>
                   <div className="teacher-chips">
@@ -268,7 +317,6 @@ const TeacherApplication = () => {
                   )}
                 </div>
 
-                {/* ── Nivel ── */}
                 <div className="teacher-field-group">
                   <p className="teacher-field-label">Nivel máximo que enseña</p>
                   <div className="teacher-chips">
@@ -320,6 +368,7 @@ const TeacherApplication = () => {
                   name="aniosEnsenando"
                   value={step2.aniosEnsenando}
                   onChange={handleStep2Change}
+                  helperText="Pendiente de implementar en BD"
                 />
                 <TextField
                   label="Link a video de muestra"
@@ -329,6 +378,7 @@ const TeacherApplication = () => {
                   name="linkVideo"
                   value={step2.linkVideo}
                   onChange={handleStep2Change}
+                  helperText="Pendiente de implementar en BD"
                 />
                 <TextField
                   label="Link a redes sociales (opcional)"
@@ -337,6 +387,7 @@ const TeacherApplication = () => {
                   name="linkRedes"
                   value={step2.linkRedes}
                   onChange={handleStep2Change}
+                  helperText="Pendiente de implementar en BD"
                 />
 
                 <FormControlLabel
@@ -362,20 +413,27 @@ const TeacherApplication = () => {
                   label="Confirmo que la información proporcionada es verídica"
                 />
 
+                {error && (
+                  <p style={{ color: "red", fontSize: "0.875rem" }}>{error}</p>
+                )}
+
                 <div className="teacher-actions">
                   <Button
-                    label="ATRÁS"
+                    label="Atrás"
                     variant="outlined"
                     color="primary"
                     size="large"
                     onClick={() => setActiveStep(0)}
                   />
                   <Button
-                    label="ENVIAR SOLICITUD"
+                    label={loading ? "Enviando..." : "Enviar solicitud"}
                     variant="contained"
                     color="primary"
                     size="large"
-                    disabled={!step2.acceptTerms || !step2.confirmInfo}
+                    disabled={
+                      !step2.acceptTerms || !step2.confirmInfo || loading
+                    }
+                    onClick={handleSubmit}
                   />
                 </div>
               </div>

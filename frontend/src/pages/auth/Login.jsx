@@ -2,32 +2,30 @@ import React, { useState, useRef } from "react";
 import Header from "../../components/layout/Header/Header.jsx";
 import Button from "../../components/ui/Button/Button.jsx";
 import { useNavigate } from "react-router-dom";
-import {
-  TextField,
-  IconButton,
-  InputAdornment,
-} from "@mui/material";
+import { TextField, IconButton, InputAdornment } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import GoogleIcon from "@mui/icons-material/Google";
 import { Turnstile } from "@marsidev/react-turnstile";
 import { AuthService } from "../../api/authService.js";
+import { useAuth } from "../../context/AuthContext.jsx";
+import { useLocation } from "react-router-dom";
 import "./Login.css";
 
 const Login = () => {
   const navigate = useNavigate();
-
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [captchaToken, setCaptchaToken] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const location = useLocation();
+  const mensajeExito = location.state?.mensaje;
 
   const [form, setForm] = useState({
-    correo: "",
-    phone: "",
+    identifier: "",
     password: "",
   });
 
-  const turnstileRef = useRef(null);
   const [captchaKey, setCaptchaKey] = useState(0);
 
   const handleCaptchaReset = () => {
@@ -46,22 +44,33 @@ const Login = () => {
 
     try {
       const response = await AuthService.login({
-        identifier: form.correo || form.phone,
+        identifier: form.identifier,
         password: form.password,
         captcha_token: captchaToken,
       });
 
       const { access, refresh, user } = response.data;
+      console.log("Usuario devuelto por el backend:", user); //se puede eliminar después de verificar que el backend devuelve el usuario correctamente
 
-      localStorage.setItem("access_token", access);
-      localStorage.setItem("refresh_token", refresh);
-      localStorage.setItem("user", JSON.stringify(user));
+      if (user.role === "profesor" && !user.validated) {
+        setError("Tu solicitud está pendiente de aprobación por el director.");
+        return;
+      }
 
-      navigate("/dashboard/");
+      login(access, refresh, user); // el contexto maneja el localStorage
+
+      const roleRoutes = {
+        admin: "/dashboard/admin",
+        director: "/dashboard/director",
+        profesor: "/dashboard/profesor",
+        client: "/dashboard/cliente", // ajusta "client" si el backend devuelve otra cosa
+      };
+
+      navigate(roleRoutes[user.role] || "/dashboard");
     } catch (err) {
       setError(
         err.response?.data?.detail ||
-        "Credenciales incorrectas. Intenta de nuevo."
+          "Credenciales incorrectas. Intenta de nuevo.",
       );
 
       handleCaptchaReset();
@@ -89,7 +98,6 @@ const Login = () => {
       <div className="container login-container">
         <div className="row justify-content-center">
           <div className="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
-
             <div className="login-header">
               <p className="login-logo">
                 <span className="login-logo-dance">Dance</span>
@@ -98,11 +106,23 @@ const Login = () => {
               <h1 className="login-title">Inicio de sesión</h1>
             </div>
 
+            {mensajeExito && (
+              <p
+                style={{
+                  color: "green",
+                  fontSize: "0.875rem",
+                  marginBottom: "1rem",
+                }}
+              >
+                {mensajeExito}
+              </p>
+            )}
+
             <div className="login-form">
               <TextField
-                label="Correo electrónico"
-                name="correo"
-                value={form.correo}
+                label="Correo electrónico o teléfono"
+                name="identifier"
+                value={form.identifier}
                 onChange={handleChange}
                 variant="outlined"
                 fullWidth
@@ -127,11 +147,7 @@ const Login = () => {
                           onClick={() => setShowPassword(!showPassword)}
                           edge="end"
                         >
-                          {showPassword ? (
-                            <VisibilityOff />
-                          ) : (
-                            <Visibility />
-                          )}
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
                         </IconButton>
                       </InputAdornment>
                     ),
@@ -140,9 +156,7 @@ const Login = () => {
               />
 
               {error && (
-                <p style={{ color: "red", fontSize: "0.875rem" }}>
-                  {error}
-                </p>
+                <p style={{ color: "red", fontSize: "0.875rem" }}>{error}</p>
               )}
 
               <div className="login-links">
@@ -158,7 +172,10 @@ const Login = () => {
 
                 <p className="login-link">
                   ¿Has olvidado tu contraseña?{" "}
-                  <span className="login-link-action">
+                  <span
+                    className="login-link-action"
+                    onClick={() => navigate("/recuperar-clave")}
+                  >
                     Recordar contraseña aquí
                   </span>
                 </p>
@@ -167,7 +184,6 @@ const Login = () => {
               <div className="login-captcha">
                 <Turnstile
                   key={captchaKey}
-                  ref={turnstileRef}
                   siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
                   onSuccess={(token) => setCaptchaToken(token)}
                   onExpire={() => setCaptchaToken(null)}
@@ -181,10 +197,11 @@ const Login = () => {
                 color="primary"
                 size="medium"
                 icon={<GoogleIcon />}
+                disabled={true}
               />
 
               <Button
-                label={loading ? "Cargando..." : "SIGUIENTE"}
+                label={loading ? "Cargando..." : "Iniciar sesión"}
                 variant="contained"
                 color="primary"
                 size="large"
@@ -192,7 +209,6 @@ const Login = () => {
                 onClick={handleLogin}
               />
             </div>
-
           </div>
         </div>
       </div>

@@ -12,14 +12,19 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import GoogleIcon from "@mui/icons-material/Google";
-import ReCAPTCHA from "react-google-recaptcha";
+import { AuthService } from "../../api/authService.js";
+import { useAuth } from "../../context/AuthContext.jsx";
 import "./Register.css";
 
 const Register = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  //const [captchaToken, setCaptchaToken] = useState(null);
 
   const [form, setForm] = useState({
     nombres: "",
@@ -32,6 +37,47 @@ const Register = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleRegister = async () => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const response = await AuthService.register({
+        first_name: form.nombres,
+        last_name: form.apellidos,
+        phone: form.telefono,
+        email: form.correo,
+        password: form.password,
+      });
+
+      // El registro siempre crea un cliente
+      navigate("/login", {
+        state: {
+          mensaje: "Cuenta creada con éxito. Inicia sesión para continuar.",
+        },
+      });
+    } catch (err) {
+      const data = err.response?.data;
+
+      if (data) {
+        // Si viene como { "detail": "..." }
+        if (data.detail) {
+          setError(data.detail);
+        } else {
+          // Si viene como { "password": ["..."], "email": ["..."] }
+          const mensajes = Object.values(data).flat();
+          setError(mensajes.join(" "));
+        }
+      } else {
+        setError(
+          "Error al registrarse. Verifica los datos e intenta de nuevo.",
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -129,6 +175,10 @@ const Register = () => {
                 }}
               />
 
+              {error && (
+                <p style={{ color: "red", fontSize: "0.875rem" }}>{error}</p>
+              )}
+
               {/* ── ¿Ya tienes cuenta? ── */}
               <p className="register-login-link">
                 ¿Ya tienes una cuenta?{" "}
@@ -162,14 +212,6 @@ const Register = () => {
                 label="Acepto los términos y condiciones de uso"
               />
 
-              {/* ── CAPTCHA ── */}
-              <div className="register-captcha">
-                <ReCAPTCHA
-                  sitekey="6LeSCCktAAAAADTbRl3EsqeSU6TZ6UZqTCnpFPjE"
-                  onChange={(token) => setCaptchaToken(token)}
-                />
-              </div>
-
               {/* ── Google ── */}
               <Button
                 label="Regístrate con Google"
@@ -177,15 +219,17 @@ const Register = () => {
                 color="primary"
                 size="medium"
                 icon={<GoogleIcon />}
+                disabled={true}
               />
 
               {/* ── Botón principal ── */}
               <Button
-                label="SIGUIENTE"
+                label={loading ? "Cargando..." : "Registrarse"}
                 variant="contained"
                 color="primary"
                 size="large"
-                disabled={!acceptTerms || !captchaToken}
+                disabled={!acceptTerms || loading}
+                onClick={handleRegister}
               />
             </div>
           </div>

@@ -134,7 +134,7 @@ const AppRouter = () => {
       <Route
         path="/carrito"
         element={
-          <ProtectedRoute allowedRoles={["cliente"]}>
+          <ProtectedRoute allowedRoles={["client"]}>
             <CartPage />
           </ProtectedRoute>
         }
@@ -142,7 +142,7 @@ const AppRouter = () => {
       <Route
         path="/checkout"
         element={
-          <ProtectedRoute allowedRoles={["cliente"]}>
+          <ProtectedRoute allowedRoles={["client"]}>
             <CheckoutWizard />
           </ProtectedRoute>
         }
@@ -150,7 +150,7 @@ const AppRouter = () => {
       <Route
         path="/mis-compras"
         element={
-          <ProtectedRoute allowedRoles={["cliente"]}>
+          <ProtectedRoute allowedRoles={["client"]}>
             <PurchaseHistory />
           </ProtectedRoute>
         }
@@ -160,7 +160,7 @@ const AppRouter = () => {
       <Route
         path="/perfil"
         element={
-          <ProtectedRoute allowedRoles={["cliente"]}>
+          <ProtectedRoute allowedRoles={["client"]}>
             <UserProfile />
           </ProtectedRoute>
         }
@@ -194,7 +194,7 @@ const AppRouter = () => {
       <Route
         path="/dashboard/cliente"
         element={
-          <ProtectedRoute allowedRoles={["cliente"]}>
+          <ProtectedRoute allowedRoles={["client"]}>
             <ClienteDashboard />
           </ProtectedRoute>
         }

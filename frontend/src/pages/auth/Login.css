@@ -56,3 +56,8 @@
   text-decoration: underline;
   color: var(--color-text-primary);
 }
+
+.login-captcha {
+  margin-bottom: var(--space-lg);
+  text-align: center;
+}
