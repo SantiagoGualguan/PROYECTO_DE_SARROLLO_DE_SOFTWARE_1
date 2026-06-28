@@ -63,6 +63,19 @@ const TeacherApplicationList = () => {
     { field: "correo", headerName: "Correo", flex: 2, minWidth: 180 },
     { field: "identificacion", headerName: "Teléfono", flex: 1, minWidth: 130 },
     {
+      field: "biography",
+      headerName: "Biografía",
+      flex: 2,
+      minWidth: 200,
+      renderCell: ({ value }) => value || "—",
+    },
+    {
+      field: "years_of_experience",
+      headerName: "Años exp.",
+      width: 110,
+      renderCell: ({ value }) => (value != null ? `${value} años` : "—"),
+    },
+    {
       field: "validated",
       headerName: "Estado",
       width: 130,
