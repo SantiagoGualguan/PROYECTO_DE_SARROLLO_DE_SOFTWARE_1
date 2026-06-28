@@ -165,6 +165,7 @@ const UserList = () => {
         showFullLogo={true}
         showSearch={true}
         navItems={[
+          { label: "dashboard", to: "/dashboard" },
           { label: "Usuarios", to: "/admin/usuarios" },
           { label: "Coreografías", to: "/coreografias" },
         ]}

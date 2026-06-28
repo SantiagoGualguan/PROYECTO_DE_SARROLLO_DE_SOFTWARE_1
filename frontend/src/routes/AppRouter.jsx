@@ -34,6 +34,7 @@ import LandingPageV2 from "../pages/public/LandingPageV2";
 
 import TeacherApplicationList from "../pages/users/TeacherApplicationList";
 import UserEditForm from "../pages/users/UserEditForm";
+import DashboardRedirect from "../components/common/DashboardRedirect.jsx";
 
 // RUTAS PÚBLICAS (sin auth):
 // / → LandingPage
@@ -69,7 +70,7 @@ const AppRouter = () => {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <AdminDashboard />
+            <DashboardRedirect />
           </ProtectedRoute>
         }
       />

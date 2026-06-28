@@ -97,10 +97,18 @@ const UserProfile = () => {
         showFullLogo={true}
         showSearch={false}
         navItems={[
+          { label: "Dashboard", to: "/dashboard" },
           { label: "Catalogo", to: "/coreografías" },
           { label: "Mis compras", to: "/mis-compras" },
         ]}
-        rightActions={[{ label: "Mi perfil", to: "/perfil" }]}
+        rightActions={[
+          {
+            label: "mi perfil",
+            variant: "contained",
+            color: "primary",
+            onClick: () => navigate("/perfil"),
+          },
+        ]}
       />
 
       <div className="container userprofile-container">
