@@ -52,11 +52,6 @@ const Login = () => {
       const { access, refresh, user } = response.data;
       console.log("Usuario devuelto por el backend:", user); //se puede eliminar después de verificar que el backend devuelve el usuario correctamente
 
-      if (user.role === "profesor" && !user.validated) {
-        setError("Tu solicitud está pendiente de aprobación por el director.");
-        return;
-      }
-
       login(access, refresh, user); // el contexto maneja el localStorage
 
       const roleRoutes = {

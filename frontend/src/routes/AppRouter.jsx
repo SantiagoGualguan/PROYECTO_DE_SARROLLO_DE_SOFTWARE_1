@@ -33,6 +33,7 @@ import ProtectedRoute from "../components/common/ProtectedRoute";
 import LandingPageV2 from "../pages/public/LandingPageV2";
 
 import TeacherApplicationList from "../pages/users/TeacherApplicationList";
+import UserEditForm from "../pages/users/UserEditForm";
 
 // RUTAS PÚBLICAS (sin auth):
 // / → LandingPage
@@ -63,7 +64,6 @@ const AppRouter = () => {
       <Route path="/registro" element={<Register />} />
       <Route path="/recuperar-clave" element={<RecoverPassword />} />
       <Route path="/solicitud-profesor" element={<TeacherApplication />} />
-
       {/* Dashboard: redirección según rol (TODO: implementar lógica real) */}
       <Route
         path="/dashboard"
@@ -73,7 +73,6 @@ const AppRouter = () => {
           </ProtectedRoute>
         }
       />
-
       {/* Administración de usuarios   NO ELIMINAR, DEBE QUEDAR ASI*/}
       <Route
         path="/admin/usuarios"
@@ -84,9 +83,6 @@ const AppRouter = () => {
         }
       />
 
-      {/* Administración de usuarios 
-      <Route path="/admin/usuarios" element={<UserList />} />*/}
-
       <Route
         path="/admin/usuarios/new"
         element={
@@ -96,7 +92,7 @@ const AppRouter = () => {
         }
       />
 
-      {/** <Route path="/admin/usuarios/new" element={<UserForm />} />*/}
+      <Route path="/admin/usuarios/:id/edit" element={<UserEditForm />} />
 
       {/* Lista de solicitudes de profesor (solo para director) */}
       <Route
@@ -107,7 +103,6 @@ const AppRouter = () => {
           </ProtectedRoute>
         }
       />
-
       {/* Coreografías */}
       <Route
         path="/coreografias"
@@ -133,7 +128,6 @@ const AppRouter = () => {
           </ProtectedRoute>
         }
       />
-
       {/* Carrito y ventas */}
       <Route
         path="/carrito"
@@ -159,7 +153,6 @@ const AppRouter = () => {
           </ProtectedRoute>
         }
       />
-
       {/* Perfil cliente */}
       <Route
         path="/perfil"
@@ -169,7 +162,6 @@ const AppRouter = () => {
           </ProtectedRoute>
         }
       />
-
       {/* Dashboards específicos por rol (rutas opcionales adicionales) */}
       <Route
         path="/dashboard/admin"
@@ -203,7 +195,6 @@ const AppRouter = () => {
           </ProtectedRoute>
         }
       />
-
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
     </Routes>
