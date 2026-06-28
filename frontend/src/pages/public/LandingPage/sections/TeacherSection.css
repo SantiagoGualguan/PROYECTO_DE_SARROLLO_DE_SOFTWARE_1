@@ -1,0 +1,102 @@
+/* ── Sección teacher ── */
+.teacher-section {
+  width: 100%;
+  padding: var(--space-2xl) var(--space-2xl);
+}
+
+/* ── Columna foto ── */
+.teacher-photo-col {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-xl);
+}
+
+/* ── Foto circular con borde ── */
+.teacher-photo-wrapper {
+  width: 350px;
+  height: 350px;
+  border-radius: 50%;
+  overflow: hidden;
+  outline: 27px solid #ff9b7d;
+  flex-shrink: 0;
+}
+
+.teacher-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Columna invitación ── */
+.teacher-invitation-col {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.teacher-invitation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2xl);
+  padding: var(--space-xl);
+}
+
+.teacher-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  text-align: center;
+  margin: 0;
+}
+
+.teacher-text {
+  font-size: var(--font-size-lg);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  text-align: center;
+  margin: 0;
+}
+
+/* ── Tablet ── */
+@media (max-width: 992px) {
+  .teacher-section {
+    padding: var(--space-xl);
+  }
+
+  .teacher-photo-wrapper {
+    width: 280px;
+    height: 280px;
+    outline: 20px solid #ff9b7d;
+  }
+
+  .teacher-title {
+    font-size: var(--font-size-xl);
+  }
+
+  .teacher-text {
+    font-size: var(--font-size-md);
+  }
+}
+
+/* ── Móvil ── */
+@media (max-width: 600px) {
+  .teacher-section {
+    padding: var(--space-lg);
+  }
+
+  .teacher-photo-wrapper {
+    width: 220px;
+    height: 220px;
+    outline: 15px solid #ff9b7d;
+  }
+
+  .teacher-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .teacher-text {
+    font-size: var(--font-size-sm);
+  }
+}

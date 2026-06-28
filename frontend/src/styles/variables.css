@@ -17,7 +17,7 @@
   --color-text-disabled: #1d1b20;
 
   /* ── Colores de estado ── */
-  --color-disabled-bg: rgba(29, 27, 32, 0.1);
+  --color-disabled-bg: #dadcdd;
   --color-hover-overlay: rgba(255, 255, 255, 0.08);
   --color-pressed-overlay: rgba(255, 255, 255, 0.1);
 

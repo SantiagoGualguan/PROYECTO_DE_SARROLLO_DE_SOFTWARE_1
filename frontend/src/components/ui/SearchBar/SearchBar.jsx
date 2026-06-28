@@ -6,11 +6,17 @@ import cerrarIcon from "../../../assets/icons/X.png";
  * Component that represents a search bar
  * @param {function} onSearch    -search function
  * @param {string}   placeholder
+ *  @param {string}   width       - search container width (e.g. "200px", "100%", "20rem").
  * @param {string} className   Additional CSS Classes.
  * @returns  {JSX.Element} Search Bar.
  */
 
-const SearchBar = ({ onSearch, placeholder = "Buscar...", className = "" }) => {
+const SearchBar = ({
+  onSearch,
+  placeholder = "Buscar...",
+  width = "200px",
+  className = "",
+}) => {
   const [query, setQuery] = useState("");
 
   // Handles the change in the input
@@ -29,6 +35,7 @@ const SearchBar = ({ onSearch, placeholder = "Buscar...", className = "" }) => {
   return (
     <div
       className={`search-container ${query ? "filled" : "placeholder"} ${className}`}
+      style={{ width }}
     >
       <input
         type="text"

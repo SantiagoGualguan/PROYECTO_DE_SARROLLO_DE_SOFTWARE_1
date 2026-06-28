@@ -8,6 +8,7 @@ import NotFound from "../pages/public/NotFound";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import RecoverPassword from "../pages/auth/RecoverPassword";
+import TeacherApplication from "../pages/auth/TeacherApplication";
 
 import AdminDashboard from "../pages/dashboard/AdminDashboard";
 import DirectorDashboard from "../pages/dashboard/DirectorDashboard";
@@ -29,6 +30,11 @@ import SaleConfirmation from "../pages/sales/SaleConfirmation";
 import PurchaseHistory from "../pages/sales/PurchaseHistory";
 
 import ProtectedRoute from "../components/common/ProtectedRoute";
+import LandingPageV2 from "../pages/public/LandingPageV2";
+
+import TeacherApplicationList from "../pages/users/TeacherApplicationList";
+import UserEditForm from "../pages/users/UserEditForm";
+import DashboardRedirect from "../components/common/DashboardRedirect.jsx";
 
 // RUTAS PÚBLICAS (sin auth):
 // / → LandingPage
@@ -54,21 +60,21 @@ const AppRouter = () => {
       {/* Públicas */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/catalogo" element={<CatalogPublic />} />
+      <Route path="/landing-v2" element={<LandingPageV2 />} />
       <Route path="/login" element={<Login />} />
       <Route path="/registro" element={<Register />} />
       <Route path="/recuperar-clave" element={<RecoverPassword />} />
-
+      <Route path="/solicitud-profesor" element={<TeacherApplication />} />
       {/* Dashboard: redirección según rol (TODO: implementar lógica real) */}
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <AdminDashboard />
+            <DashboardRedirect />
           </ProtectedRoute>
         }
       />
-
-      {/* Administración de usuarios */}
+      {/* Administración de usuarios   NO ELIMINAR, DEBE QUEDAR ASI*/}
       <Route
         path="/admin/usuarios"
         element={
@@ -77,6 +83,7 @@ const AppRouter = () => {
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/admin/usuarios/new"
         element={
@@ -86,6 +93,17 @@ const AppRouter = () => {
         }
       />
 
+      <Route path="/admin/usuarios/:id/edit" element={<UserEditForm />} />
+
+      {/* Lista de solicitudes de profesor (solo para director) */}
+      <Route
+        path="/director/solicitudes"
+        element={
+          <ProtectedRoute allowedRoles={["director", "admin"]}>
+            <TeacherApplicationList />
+          </ProtectedRoute>
+        }
+      />
       {/* Coreografías */}
       <Route
         path="/coreografias"
@@ -111,12 +129,11 @@ const AppRouter = () => {
           </ProtectedRoute>
         }
       />
-
       {/* Carrito y ventas */}
       <Route
         path="/carrito"
         element={
-          <ProtectedRoute allowedRoles={["cliente"]}>
+          <ProtectedRoute allowedRoles={["client"]}>
             <CartPage />
           </ProtectedRoute>
         }
@@ -124,7 +141,7 @@ const AppRouter = () => {
       <Route
         path="/checkout"
         element={
-          <ProtectedRoute allowedRoles={["cliente"]}>
+          <ProtectedRoute allowedRoles={["client"]}>
             <CheckoutWizard />
           </ProtectedRoute>
         }
@@ -132,22 +149,20 @@ const AppRouter = () => {
       <Route
         path="/mis-compras"
         element={
-          <ProtectedRoute allowedRoles={["cliente"]}>
+          <ProtectedRoute allowedRoles={["client"]}>
             <PurchaseHistory />
           </ProtectedRoute>
         }
       />
-
       {/* Perfil cliente */}
       <Route
         path="/perfil"
         element={
-          <ProtectedRoute allowedRoles={["cliente"]}>
+          <ProtectedRoute allowedRoles={["client"]}>
             <UserProfile />
           </ProtectedRoute>
         }
       />
-
       {/* Dashboards específicos por rol (rutas opcionales adicionales) */}
       <Route
         path="/dashboard/admin"
@@ -176,12 +191,11 @@ const AppRouter = () => {
       <Route
         path="/dashboard/cliente"
         element={
-          <ProtectedRoute allowedRoles={["cliente"]}>
+          <ProtectedRoute allowedRoles={["client"]}>
             <ClienteDashboard />
           </ProtectedRoute>
         }
       />
-
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
     </Routes>

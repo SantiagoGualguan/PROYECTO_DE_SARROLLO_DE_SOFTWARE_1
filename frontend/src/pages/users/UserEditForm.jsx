@@ -1,63 +1,104 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../../components/layout/Header/Header.jsx";
-import { useNavigate } from "react-router-dom";
-import { TextField, IconButton, InputAdornment, MenuItem } from "@mui/material";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
 import Button from "../../components/ui/Button/Button.jsx";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  TextField,
+  IconButton,
+  InputAdornment,
+  MenuItem,
+  Switch,
+  FormControlLabel,
+} from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { UserService } from "../../api/userService.js";
-import "./UserForm.css";
+import "./UserForm.css"; // reutiliza los mismos estilos
 
 const ROLES = [
   { value: "admin", label: "Administrador" },
   { value: "director", label: "Director" },
+  { value: "profesor", label: "Profesor" },
 ];
 
-const UserForm = () => {
+const UserEditForm = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
+
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
 
   const [form, setForm] = useState({
     nombre: "",
-    apellido: "",
     correo: "",
     identificacion: "",
     contrasena: "",
     rol: "",
+    is_active: true,
+    validated: false,
   });
 
+  // Cargar datos del usuario al montar
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const { data } = await UserService.getInternalUserDetail(id);
+        // El backend devuelve "nombre" como nombre completo
+        setForm({
+          nombre: data.nombre || "",
+          correo: data.correo || "",
+          identificacion: data.identificacion || "",
+          contrasena: "", // nunca se pre-rellena por seguridad
+          rol: data.rol || "",
+          is_active: data.is_active ?? true,
+          validated: data.validated ?? false,
+        });
+      } catch (err) {
+        setError(
+          err.response?.data?.detail ||
+            "Error al cargar los datos del usuario.",
+        );
+      } finally {
+        setLoadingData(false);
+      }
+    };
+
+    fetchUser();
+  }, [id]);
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const handleSubmit = async () => {
-    setSuccess(null);
     setError(null);
+    setSuccess(null);
     setLoading(true);
 
     try {
-      const { data } = await UserService.createInternalUser({
-        nombre: `${form.nombre} ${form.apellido}`.trim(),
+      // Solo enviar campos que tienen valor — contrasena es opcional
+      const payload = {
+        nombre: form.nombre,
         correo: form.correo,
         identificacion: form.identificacion,
-        contrasena: form.contrasena,
         rol: form.rol,
-      });
+        is_active: form.is_active,
+        validated: form.validated,
+      };
 
-      // Limpiar formulario y mostrar éxito
-      setForm({
-        nombre: "",
-        apellido: "",
-        correo: "",
-        identificacion: "",
-        contrasena: "",
-        rol: "",
-      });
+      // Solo incluir contraseña si el admin escribió una nueva
+      if (form.contrasena.trim()) {
+        payload.contrasena = form.contrasena;
+      }
 
-      setSuccess(`Usuario ${data.user.nombre} creado con éxito.`);
+      await UserService.updateInternalUser(id, payload);
+      setSuccess("Usuario actualizado con éxito.");
     } catch (err) {
       const data = err.response?.data;
       if (data?.detail) {
@@ -65,33 +106,45 @@ const UserForm = () => {
       } else if (data) {
         setError(Object.values(data).flat().join(" "));
       } else {
-        setError("Error al crear el usuario. Intenta de nuevo.");
+        setError("Error al actualizar el usuario. Intenta de nuevo.");
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const isFormValid =
-    form.nombre &&
-    form.apellido &&
-    form.correo &&
-    form.identificacion &&
-    form.contrasena &&
-    form.rol;
+  if (loadingData) {
+    return (
+      <div>
+        <Header
+          showMenu={true}
+          showFullLogo={true}
+          showSearch={false}
+          navItems={[
+            { label: "Usuarios", to: "/admin/usuarios" },
+            { label: "Coreografías", to: "/coreografias" },
+          ]}
+          menuItems={[
+            { label: "Lista de usuarios", to: "/admin/usuarios" },
+            { label: "Crear usuario", to: "/admin/usuarios/new" },
+          ]}
+        />
+        <p style={{ padding: "2rem" }}>Cargando datos del usuario...</p>
+      </div>
+    );
+  }
 
   return (
     <div>
       <Header
         showMenu={true}
         showFullLogo={true}
-        showSearch={true}
+        showSearch={false}
         navItems={[
           { label: "Usuarios", to: "/admin/usuarios" },
           { label: "Coreografías", to: "/coreografias" },
         ]}
         menuItems={[
-          // ← items exclusivos del sidebar
           { label: "Lista de usuarios", to: "/admin/usuarios" },
           { label: "Crear usuario", to: "/admin/usuarios/new" },
         ]}
@@ -99,30 +152,20 @@ const UserForm = () => {
       <div className="container userform-container">
         <div className="row justify-content-center">
           <div className="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
-            {/* ── Encabezado ── */}
             <div className="userform-header">
-              <h1 className="userform-title">Crear usuario</h1>
+              <h1 className="userform-title">Editar usuario</h1>
               <p className="userform-subtitle">
-                Registra un nuevo administrador o director
+                Modifica los datos del usuario
               </p>
             </div>
 
-            {/* ── Formulario ── */}
             <div className="userform-form">
               <TextField
-                label="Nombre"
+                label="Nombre completo"
                 variant="outlined"
                 fullWidth
                 name="nombre"
                 value={form.nombre}
-                onChange={handleChange}
-              />
-              <TextField
-                label="Apellido"
-                variant="outlined"
-                fullWidth
-                name="apellido"
-                value={form.apellido}
                 onChange={handleChange}
               />
               <TextField
@@ -143,13 +186,14 @@ const UserForm = () => {
                 onChange={handleChange}
               />
               <TextField
-                label="Contraseña"
+                label="Nueva contraseña (opcional)"
                 variant="outlined"
                 fullWidth
                 name="contrasena"
                 type={showPassword ? "text" : "password"}
                 value={form.contrasena}
                 onChange={handleChange}
+                helperText="Déjalo vacío para mantener la contraseña actual"
                 slotProps={{
                   input: {
                     endAdornment: (
@@ -165,8 +209,6 @@ const UserForm = () => {
                   },
                 }}
               />
-
-              {/* ── Selector de rol ── */}
               <TextField
                 label="Rol"
                 variant="outlined"
@@ -183,6 +225,29 @@ const UserForm = () => {
                 ))}
               </TextField>
 
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={form.is_active}
+                    onChange={handleChange}
+                    name="is_active"
+                    color="primary"
+                  />
+                }
+                label="Usuario activo"
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={form.validated}
+                    onChange={handleChange}
+                    name="validated"
+                    color="primary"
+                  />
+                }
+                label="Usuario validado"
+              />
+
               {success && (
                 <p style={{ color: "green", fontSize: "0.875rem" }}>
                   {success}
@@ -192,30 +257,20 @@ const UserForm = () => {
                 <p style={{ color: "red", fontSize: "0.875rem" }}>{error}</p>
               )}
 
-              {/* ── Botones ── */}
               <div className="userform-actions">
                 <Button
-                  label="CANCELAR"
+                  label="Volver"
                   variant="outlined"
                   color="primary"
                   size="large"
-                  onClick={() =>
-                    setForm({
-                      nombre: "",
-                      apellido: "",
-                      correo: "",
-                      identificacion: "",
-                      contrasena: "",
-                      rol: "",
-                    })
-                  }
+                  onClick={() => navigate("/admin/usuarios")}
                 />
                 <Button
-                  label={loading ? "Creando..." : "Crear usuario"}
+                  label={loading ? "Guardando..." : "Guardar cambios"}
                   variant="contained"
                   color="primary"
                   size="large"
-                  disabled={!isFormValid || loading}
+                  disabled={loading}
                   onClick={handleSubmit}
                 />
               </div>
@@ -227,4 +282,4 @@ const UserForm = () => {
   );
 };
 
-export default UserForm;
+export default UserEditForm;
