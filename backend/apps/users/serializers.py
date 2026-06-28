@@ -92,38 +92,6 @@ class InternalUserCreateSerializer(serializers.Serializer):
 
         return normalized_role
 
-
-class InternalUserListSerializer(serializers.ModelSerializer):
-    nombre = serializers.SerializerMethodField()
-    correo = serializers.SerializerMethodField()
-    identificacion = serializers.SerializerMethodField()
-    rol = serializers.CharField(source="u_type")
-
-    class Meta:
-        model = CustomUser
-        fields = [
-            "id",
-            "nombre",
-            "correo",
-            "identificacion",
-            "rol",
-            "is_active",
-            "validated",
-            "creation_date",
-        ]
-
-    def get_nombre(self, obj):
-        return f"{obj.u_name} {obj.last_name}".strip()
-
-    def get_correo(self, obj):
-        first_email = next(iter(obj.emails.all()), None)
-        return first_email.email if first_email else None
-
-    def get_identificacion(self, obj):
-        first_phone = next(iter(obj.phone_numbers.all()), None)
-        return first_phone.p_number if first_phone else None
-
-
 class InternalUserUpdateSerializer(serializers.Serializer):
     nombre = serializers.CharField(max_length=100, required=False)
     identificacion = serializers.CharField(max_length=15, required=False)
@@ -243,3 +211,45 @@ class ClientProfileUpdateSerializer(serializers.Serializer):
                 )
 
         return attrs
+
+class InternalUserListSerializer(serializers.ModelSerializer):
+    nombre = serializers.SerializerMethodField()
+    correo = serializers.SerializerMethodField()
+    identificacion = serializers.SerializerMethodField()
+    rol = serializers.CharField(source="u_type")
+    biography = serializers.SerializerMethodField()
+    years_of_experience = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "id",
+            "nombre",
+            "correo",
+            "identificacion",
+            "rol",
+            "is_active",
+            "validated",
+            "creation_date",
+            "biography",
+            "years_of_experience",
+        ]
+
+    def get_nombre(self, obj):
+        return f"{obj.u_name} {obj.last_name}".strip()
+
+    def get_correo(self, obj):
+        first_email = next(iter(obj.emails.all()), None)
+        return first_email.email if first_email else None
+
+    def get_identificacion(self, obj):
+        first_phone = next(iter(obj.phone_numbers.all()), None)
+        return first_phone.p_number if first_phone else None
+
+    def get_biography(self, obj):
+        profesor = getattr(obj, "profesor_profile", None)
+        return profesor.biography if profesor else None
+
+    def get_years_of_experience(self, obj):
+        profesor = getattr(obj, "profesor_profile", None)
+        return profesor.years_of_experience if profesor else None

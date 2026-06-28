@@ -21,7 +21,7 @@ from apps.sales.models import Purchase
 
 from .filters import InternalUserFilter
 from .models import CustomUser, UserEmail, UserPhoneNumber
-from .permissions import IsAdmin
+from .permissions import IsAdminOrDirector
 from .serializers import (
     CustomUserSerializer,
     ClientProfileUpdateSerializer,
@@ -301,6 +301,12 @@ class AuthViewSet(viewsets.ViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        if user.u_type == "profesor" and not user.validated:
+            return Response(
+                {"detail": "Tu solicitud aún está pendiente de aprobación por el director."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         return _build_auth_response(user, status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"], permission_classes=[AllowAny])
@@ -531,14 +537,14 @@ class InternalUserViewSet(viewsets.ModelViewSet):
 
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAdminOrDirector]
     filter_backends = [DjangoFilterBackend]
     filterset_class = InternalUserFilter
 
     def get_queryset(self):
         return (
             CustomUser.objects.filter(u_type__in=INTERNAL_ALLOWED_ROLES)
-            .prefetch_related("emails", "phone_numbers")
+            .prefetch_related("emails", "phone_numbers", "profesor_profile")
             .order_by("id")
         )
 
@@ -624,7 +630,7 @@ class InternalUserViewSet(viewsets.ModelViewSet):
         user_id = kwargs.get("pk")
         user = (
             CustomUser.objects.filter(id=user_id)
-            .prefetch_related("emails", "phone_numbers")
+            .prefetch_related("emails", "phone_numbers", "profesor_profile")
             .first()
         )
 
@@ -649,7 +655,7 @@ class InternalUserViewSet(viewsets.ModelViewSet):
 
         user = (
             CustomUser.objects.filter(id=user_id)
-            .prefetch_related("emails", "phone_numbers")
+            .prefetch_related("emails", "phone_numbers", "profesor_profile")
             .first()
         )
         if not user:
@@ -725,7 +731,7 @@ class InternalUserViewSet(viewsets.ModelViewSet):
 
         updated_user = (
             CustomUser.objects.filter(id=user.id)
-            .prefetch_related("emails", "phone_numbers")
+            .prefetch_related("emails", "phone_numbers", "profesor_profile")
             .first()
         )
         response_user = InternalUserListSerializer(updated_user).data
