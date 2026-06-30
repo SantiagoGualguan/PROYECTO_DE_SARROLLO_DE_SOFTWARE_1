@@ -1,5 +1,5 @@
 import "./Footer.css";
-import instagram from "../../../assets/icons/Instagram.png";
+import instagram from "../../../assets/icons/instagram.png";
 import twitter from "../../../assets/icons/twitter.png";
 import youtube from "../../../assets/icons/youtube.png";
 import facebook from "../../../assets/icons/facebook.png";
