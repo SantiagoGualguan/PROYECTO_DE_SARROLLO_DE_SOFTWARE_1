@@ -1,0 +1,112 @@
+/* ── Sección preview ── */
+.preview-section {
+  width: 100%;
+  padding: var(--space-lg) var(--space-2xl);
+  min-height: 300px;
+}
+
+/* ── Columna fotos ── */
+.preview-photos-col {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ── Contenedor de fotos con superposición ── */
+.preview-photos {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  height: 221px;
+}
+
+/* ── Imagen base ── */
+.preview-img {
+  position: absolute;
+  width: 54%; /* ← porcentaje en vez de px fijo */
+  height: 131px;
+  border-radius: 20px;
+  object-fit: cover;
+}
+
+/* ── Foto superior izquierda ── */
+.preview-img--top {
+  left: 0;
+  top: 0;
+}
+
+/* ── Foto inferior derecha ── */
+.preview-img--bottom {
+  left: 46%; /* ← porcentaje en vez de 238px fijo */
+  top: 71px;
+}
+
+/* ── Columna información ── */
+.preview-info-col {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.preview-information {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xl);
+  padding: var(--space-xl);
+}
+
+.preview-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  text-align: center;
+  margin: 0;
+}
+
+.preview-text {
+  font-size: var(--font-size-lg);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  text-align: center;
+  margin: 0;
+}
+
+/* ── Tablet ── */
+@media (max-width: 992px) {
+  .preview-section {
+    padding: var(--space-lg) var(--space-xl);
+  }
+
+  .preview-title {
+    font-size: var(--font-size-xl);
+  }
+
+  .preview-text {
+    font-size: var(--font-size-md);
+  }
+}
+
+/* ── Móvil ── */
+@media (max-width: 600px) {
+  .preview-section {
+    padding: var(--space-lg);
+  }
+
+  /* fotos más pequeñas en móvil */
+  .preview-photos {
+    height: 160px;
+  }
+
+  .preview-img {
+    height: 95px;
+  }
+
+  .preview-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .preview-text {
+    font-size: var(--font-size-sm);
+  }
+}

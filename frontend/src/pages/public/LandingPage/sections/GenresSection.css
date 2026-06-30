@@ -1,0 +1,103 @@
+/* ── Sección géneros ── */
+.genres-section {
+  width: 100%;
+  padding: var(--space-2xl) var(--space-2xl);
+  background-color: var(--color-primary);
+}
+
+/* ── Título ── */
+.genres-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: white;
+  text-align: center;
+  margin-bottom: var(--space-lg);
+}
+
+/* ── Descripción ── */
+.genres-description {
+  font-size: var(--font-size-xl);
+  font-weight: 500;
+  color: white;
+  text-align: center;
+  margin-bottom: var(--space-2xl);
+}
+
+/* ── Item de género ── */
+.genre-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-xl);
+}
+
+/* ── Imagen del género ── */
+.genre-img {
+  width: 100%;
+  aspect-ratio: 4 / 3; /* ← mantiene proporción sin altura fija */
+  object-fit: cover;
+  border-radius: 20px;
+}
+
+/* ── Label del género ── */
+.genre-label {
+  font-size: var(--font-size-lg);
+  font-weight: 500;
+  color: white;
+  text-align: center;
+  margin: 0;
+}
+
+/* ── Botón ── */
+.genres-button {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-2xl);
+}
+
+/* ── Tablet ── */
+@media (max-width: 992px) {
+  .genres-section {
+    padding: var(--space-xl);
+  }
+
+  .genre-item {
+    padding: var(--space-lg);
+  }
+
+  .genres-title {
+    font-size: var(--font-size-xl);
+  }
+
+  .genres-description {
+    font-size: var(--font-size-lg);
+  }
+
+  .genre-label {
+    font-size: var(--font-size-md);
+  }
+}
+
+/* ── Móvil ── */
+@media (max-width: 600px) {
+  .genres-section {
+    padding: var(--space-lg);
+  }
+
+  .genre-item {
+    padding: var(--space-sm);
+  }
+
+  .genres-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .genres-description {
+    font-size: var(--font-size-sm);
+  }
+
+  .genre-label {
+    font-size: var(--font-size-xs);
+  }
+}

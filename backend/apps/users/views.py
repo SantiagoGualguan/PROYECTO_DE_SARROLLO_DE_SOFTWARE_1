@@ -1,4 +1,11 @@
-﻿from django.contrib.auth.hashers import make_password
+﻿import json
+from urllib.error import URLError
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+
+from django.conf import settings
+from django.contrib.auth.hashers import make_password
+from django.core import signing
 from django.db import connection, transaction
 from django.db.models import Q, Value
 from django.db.models.functions import Concat
@@ -6,12 +13,18 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
+from django_filters.rest_framework import DjangoFilterBackend
 
+from apps.sales.models import Purchase
+
+from .filters import InternalUserFilter
 from .models import CustomUser, UserEmail, UserPhoneNumber
-from .permissions import IsAdmin
+from .permissions import IsAdminOrDirector
 from .serializers import (
     CustomUserSerializer,
+    ClientProfileUpdateSerializer,
     INTERNAL_ALLOWED_ROLES,
     InternalUserCreateSerializer,
     InternalUserListSerializer,
@@ -30,6 +43,10 @@ SQL_CREATION_ERROR = (
     "No se pudo crear el usuario con la funcion SQL. "
     "Verifica que 02_functions.sql este aplicado en la base de datos."
 )
+
+TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+PASSWORD_RESET_TOKEN_SALT = "users.password-reset"
+PASSWORD_RESET_TOKEN_MAX_AGE = 60 * 60 * 24
 
 
 def _split_full_name(full_name):
@@ -115,10 +132,113 @@ def _build_auth_response(user, response_status):
     )
 
 
+def _get_primary_email(user):
+    email_relation = user.emails.order_by("email_id").first()
+    return email_relation.email if email_relation else None
+
+
+def _get_primary_phone(user):
+    phone_relation = user.phone_numbers.order_by("p_number_id").first()
+    return phone_relation.p_number if phone_relation else None
+
+
+def _find_user_by_identifier(identifier):
+    if not identifier:
+        return None
+
+    try:
+        return UserEmail.objects.select_related("user").get(email__iexact=identifier).user
+    except UserEmail.DoesNotExist:
+        try:
+            return UserPhoneNumber.objects.select_related("user").get(p_number=identifier).user
+        except UserPhoneNumber.DoesNotExist:
+            return None
+
+
+def _serialize_user_profile(user):
+    return {
+        "id": user.id,
+        "nombre": f"{user.u_name} {user.last_name}".strip(),
+        "correo": _get_primary_email(user),
+        "identificacion": _get_primary_phone(user),
+        "rol": user.u_type,
+        "is_active": user.is_active,
+        "validated": user.validated,
+        "creation_date": user.creation_date,
+    }
+
+
+def _serialize_purchase_history(purchase):
+    bills = list(purchase.bills.all())
+    cart_items = [
+        {
+            "id": cart_item.cart_item_id,
+            "coreography_id": cart_item.coreography_id,
+            "coreography_name": cart_item.coreography.c_name,
+            "unit_price": str(cart_item.unit_price),
+        }
+        for cart_item in purchase.cart.items.select_related("coreography").all()
+    ]
+    coreographies = [
+        {
+            "id": user_coreography.coreography_id,
+            "name": user_coreography.coreography.c_name,
+            "price": str(user_coreography.coreography.price),
+            "genre": user_coreography.coreography.song_genre,
+            "difficulty": user_coreography.coreography.dificulty_level,
+        }
+        for user_coreography in purchase.user_coreographies.select_related("coreography").all()
+    ]
+
+    return {
+        "purchase_id": purchase.purchase_id,
+        "purchase_date": purchase.purchase_date,
+        "transaction_id": purchase.transaction_id,
+        "cart_id": purchase.cart_id,
+        "total_amount": str(bills[0].total_amount) if bills else None,
+        "payment_method": bills[0].payment_method if bills else None,
+        "items": cart_items,
+        "coreographies": coreographies,
+        "bills": [
+            {
+                "id": bill.bill_id,
+                "total_amount": str(bill.total_amount),
+                "payment_method": bill.payment_method,
+                "email_address": bill.email_address,
+                "titular_name": bill.titular_name,
+                "document_number": bill.document_number,
+                "details": bill.details,
+                "creation_date": bill.creation_date,
+            }
+            for bill in bills
+        ],
+    }
+
+
 def _handle_creation_error(exc):
     if isinstance(exc, ValueError):
         return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
     return Response({"detail": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+def verify_turnstile_token(token):
+    if not token:
+        return False
+
+    secret_key = getattr(settings, "TURNSTILE_SECRET_KEY", None)
+    if not secret_key:
+        return False
+
+    payload = urlencode({"secret": secret_key, "response": token}).encode("utf-8")
+    request = Request(TURNSTILE_VERIFY_URL, data=payload, method="POST")
+    request.add_header("Content-Type", "application/x-www-form-urlencoded")
+
+    try:
+        with urlopen(request, timeout=5) as response:
+            result = json.loads(response.read().decode("utf-8"))
+            return result.get("success", False)
+    except (URLError, TimeoutError, ValueError):
+        return False
 
 
 class AuthViewSet(viewsets.ViewSet):
@@ -136,6 +256,24 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"], permission_classes=[AllowAny])
     def login(self, request):
+        captcha_token = (
+            request.data.get("captcha_token")
+            or request.data.get("turnstile_token")
+            or request.data.get("captcha")
+        )
+
+        if not captcha_token:
+            return Response(
+                {"detail": "El token de CAPTCHA es requerido."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not verify_turnstile_token(captcha_token):
+            return Response(
+                {"detail": "La validacion del CAPTCHA no es valida."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         identifier = (
             request.data.get("identifier")
             or request.data.get("email")
@@ -160,6 +298,12 @@ class AuthViewSet(viewsets.ViewSet):
         if not user.is_active:
             return Response(
                 {"detail": "El usuario esta inactivo"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if user.u_type == "profesor" and not user.validated:
+            return Response(
+                {"detail": "Tu solicitud aún está pendiente de aprobación por el director."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -195,19 +339,193 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"])
     def logout(self, request):
-        raise NotImplementedError("TODO: implementar logout")
+        refresh_token = (
+            request.data.get("refresh")
+            or request.data.get("refresh_token")
+            or request.data.get("token")
+        )
 
-    @action(detail=False, methods=["post"])
+        if refresh_token:
+            try:
+                RefreshToken(refresh_token)
+            except TokenError:
+                return Response(
+                    {"detail": "El token de refresco no es valido."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        return Response(
+            {
+                "detail": (
+                    "La sesion se cerro correctamente. El cliente debe eliminar "
+                    "sus tokens locales."
+                )
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=False, methods=["post"], url_path="token-refresh")
     def token_refresh(self, request):
-        raise NotImplementedError("TODO: implementar token refresh")
+        refresh_token = request.data.get("refresh") or request.data.get("refresh_token")
 
-    @action(detail=False, methods=["post"])
+        if not refresh_token:
+            return Response(
+                {"detail": "El refresh token es requerido."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            refresh = RefreshToken(refresh_token)
+            user = CustomUser.objects.filter(id=refresh["user_id"]).first()
+        except TokenError:
+            return Response(
+                {"detail": "El refresh token no es valido."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        if not user:
+            return Response(
+                {"detail": "El usuario asociado al token no existe."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if not user.is_active:
+            return Response(
+                {"detail": "El usuario esta inactivo."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        return _build_auth_response(user, status.HTTP_200_OK)
+
+    @action(detail=False, methods=["post"], url_path="recover-password")
     def recover_password(self, request):
-        raise NotImplementedError("TODO: implementar recover password")
+        identifier = (
+            request.data.get("identifier")
+            or request.data.get("email")
+            or request.data.get("phone")
+        )
 
-    @action(detail=True, methods=["post"], url_path="reset-password")
-    def reset_password(self, request, pk=None):
-        raise NotImplementedError("TODO: implementar reset password")
+        if not identifier:
+            return Response(
+                {"detail": "El correo o telefono es requerido."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        captcha_token = (
+            request.data.get("captcha_token")
+            or request.data.get("turnstile_token")
+            or request.data.get("captcha")
+        )
+        if not captcha_token:
+            return Response(
+                {"detail": "El token de CAPTCHA es requerido."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not verify_turnstile_token(captcha_token):
+            return Response(
+                {"detail": "La validacion del CAPTCHA no es valida."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        user = _find_user_by_identifier(identifier)
+        if not user:
+            return Response(
+                {"detail": "No se encontro un usuario con ese identificador."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if not user.is_active:
+            return Response(
+                {"detail": "El usuario esta inactivo."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        reset_token = signing.dumps({"user_id": user.id}, salt=PASSWORD_RESET_TOKEN_SALT)
+
+        return Response(
+            {
+                "detail": "Se genero un token de recuperacion de contrasena.",
+                "user_id": user.id,
+                "reset_token": reset_token,
+                "reset_url": f"/api/auth/reset-password/{reset_token}/",
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=False, methods=["post"], url_path=r"reset-password/(?P<token>[^/.]+)")
+    def reset_password(self, request, token=None):
+        new_password = request.data.get("new_password") or request.data.get("password")
+        confirm_password = request.data.get("confirm_password") or request.data.get(
+            "password_confirm"
+        )
+
+        if not new_password:
+            return Response(
+                {"detail": "La nueva contrasena es requerida."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if confirm_password is not None and confirm_password != new_password:
+            return Response(
+                {"detail": "Las contrasenas no coinciden."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        captcha_token = (
+            request.data.get("captcha_token")
+            or request.data.get("turnstile_token")
+            or request.data.get("captcha")
+        )
+        if not captcha_token:
+            return Response(
+                {"detail": "El token de CAPTCHA es requerido."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not verify_turnstile_token(captcha_token):
+            return Response(
+                {"detail": "La validacion del CAPTCHA no es valida."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            payload = signing.loads(
+                token,
+                salt=PASSWORD_RESET_TOKEN_SALT,
+                max_age=PASSWORD_RESET_TOKEN_MAX_AGE,
+            )
+        except signing.SignatureExpired:
+            return Response(
+                {"detail": "El token de recuperacion expiro."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except signing.BadSignature:
+            return Response(
+                {"detail": "El token de recuperacion no es valido."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = CustomUser.objects.filter(id=payload.get("user_id")).first()
+        if not user:
+            return Response(
+                {"detail": "El usuario no existe."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if not user.is_active:
+            return Response(
+                {"detail": "El usuario esta inactivo."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        user.password = make_password(new_password)
+        user.save(update_fields=["password"])
+
+        return Response(
+            {"detail": "La contrasena fue actualizada con exito."},
+            status=status.HTTP_200_OK,
+        )
 
 
 class InternalUserViewSet(viewsets.ModelViewSet):
@@ -219,7 +537,16 @@ class InternalUserViewSet(viewsets.ModelViewSet):
 
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAdminOrDirector]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = InternalUserFilter
+
+    def get_queryset(self):
+        return (
+            CustomUser.objects.filter(u_type__in=INTERNAL_ALLOWED_ROLES)
+            .prefetch_related("emails", "phone_numbers", "profesor_profile")
+            .order_by("id")
+        )
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -231,34 +558,7 @@ class InternalUserViewSet(viewsets.ModelViewSet):
         return CustomUserSerializer
 
     def list(self, request, *args, **kwargs):
-        queryset = (
-            CustomUser.objects.filter(u_type__in=INTERNAL_ALLOWED_ROLES)
-            .prefetch_related("emails", "phone_numbers")
-            .order_by("id")
-        )
-
-        role_filter = request.query_params.get("rol")
-        if role_filter is not None:
-            cleaned_role_filter = role_filter.strip()
-            if not cleaned_role_filter:
-                return Response(
-                    {"detail": "El parametro rol no puede estar vacio."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            canonical_role = normalize_internal_role(cleaned_role_filter)
-            if canonical_role not in INTERNAL_ALLOWED_ROLES:
-                return Response(
-                    {
-                        "detail": (
-                            "Rol invalido. Usa admin, director o profesor "
-                            "(profesor bailarin tambien es valido)."
-                        )
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            queryset = queryset.filter(u_type=canonical_role)
+        queryset = self.filter_queryset(self.get_queryset())
 
         search_value = request.query_params.get("search")
         if search_value is not None:
@@ -327,7 +627,27 @@ class InternalUserViewSet(viewsets.ModelViewSet):
         )
 
     def retrieve(self, request, *args, **kwargs):
-        raise NotImplementedError("TODO: implementar detalle de usuario interno")
+        user_id = kwargs.get("pk")
+        user = (
+            CustomUser.objects.filter(id=user_id)
+            .prefetch_related("emails", "phone_numbers", "profesor_profile")
+            .first()
+        )
+
+        if not user:
+            return Response(
+                {"detail": "El usuario no existe."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if user.u_type not in INTERNAL_ALLOWED_ROLES:
+            return Response(
+                {"detail": "Solo se pueden consultar usuarios internos."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = InternalUserListSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
         user_id = kwargs.get("pk")
@@ -335,7 +655,7 @@ class InternalUserViewSet(viewsets.ModelViewSet):
 
         user = (
             CustomUser.objects.filter(id=user_id)
-            .prefetch_related("emails", "phone_numbers")
+            .prefetch_related("emails", "phone_numbers", "profesor_profile")
             .first()
         )
         if not user:
@@ -411,7 +731,7 @@ class InternalUserViewSet(viewsets.ModelViewSet):
 
         updated_user = (
             CustomUser.objects.filter(id=user.id)
-            .prefetch_related("emails", "phone_numbers")
+            .prefetch_related("emails", "phone_numbers", "profesor_profile")
             .first()
         )
         response_user = InternalUserListSerializer(updated_user).data
@@ -464,8 +784,115 @@ class ClientProfileViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["get", "put"])
     def me(self, request):
-        raise NotImplementedError("TODO: implementar perfil del cliente autenticado")
+        user = request.user
+        if not user or not user.is_authenticated:
+            return Response(
+                {"detail": "Se requiere autenticacion."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        if getattr(user, "u_type", None) != "client":
+            return Response(
+                {"detail": "Solo el cliente autenticado puede acceder a este recurso."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        user = (
+            CustomUser.objects.filter(id=user.id)
+            .prefetch_related("emails", "phone_numbers")
+            .first()
+        )
+
+        if request.method == "GET":
+            return Response(_serialize_user_profile(user), status=status.HTTP_200_OK)
+
+        serializer = ClientProfileUpdateSerializer(
+            data=request.data,
+            context={"user": user},
+        )
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        user_fields_to_update = []
+        if "nombre" in data:
+            first_name, last_name = _split_full_name(data["nombre"])
+            user.u_name = first_name
+            user.last_name = last_name
+            user_fields_to_update.extend(["u_name", "last_name"])
+
+        if "contrasena" in data:
+            user.password = make_password(data["contrasena"])
+            user_fields_to_update.append("password")
+
+        with transaction.atomic():
+            if user_fields_to_update:
+                user.save(update_fields=list(set(user_fields_to_update)))
+
+            if "correo" in data:
+                email_relation = user.emails.order_by("email_id").first()
+                if email_relation:
+                    email_relation.email = data["correo"]
+                    email_relation.save(update_fields=["email"])
+                else:
+                    UserEmail.objects.create(user=user, email=data["correo"])
+
+            if "identificacion" in data:
+                phone_relation = user.phone_numbers.order_by("p_number_id").first()
+                if phone_relation:
+                    phone_relation.p_number = data["identificacion"]
+                    phone_relation.save(update_fields=["p_number"])
+                else:
+                    UserPhoneNumber.objects.create(
+                        user=user,
+                        p_number=data["identificacion"],
+                    )
+
+        updated_user = (
+            CustomUser.objects.filter(id=user.id)
+            .prefetch_related("emails", "phone_numbers")
+            .first()
+        )
+
+        return Response(
+            {
+                "detail": "Los datos del cliente fueron actualizados con exito.",
+                "user": _serialize_user_profile(updated_user),
+            },
+            status=status.HTTP_200_OK,
+        )
 
     @action(detail=False, methods=["get"], url_path="me/history")
     def history(self, request):
-        raise NotImplementedError("TODO: implementar historial de compras del cliente")
+        user = request.user
+        if not user or not user.is_authenticated:
+            return Response(
+                {"detail": "Se requiere autenticacion."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        if getattr(user, "u_type", None) != "client":
+            return Response(
+                {"detail": "Solo el cliente autenticado puede acceder a este recurso."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        purchases = (
+            Purchase.objects.filter(cart__user=user)
+            .select_related("cart")
+            .prefetch_related(
+                "bills",
+                "user_coreographies__coreography",
+                "cart__items__coreography",
+            )
+            .order_by("-purchase_date", "-purchase_id")
+        )
+
+        serialized_purchases = [_serialize_purchase_history(purchase) for purchase in purchases]
+
+        return Response(
+            {
+                "count": len(serialized_purchases),
+                "results": serialized_purchases,
+            },
+            status=status.HTTP_200_OK,
+        )

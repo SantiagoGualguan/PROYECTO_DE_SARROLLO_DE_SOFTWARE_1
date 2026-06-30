@@ -10,6 +10,7 @@ services:
       - DJANGO_SETTINGS_MODULE=config.settings.development
       - DATABASE_URL=${DATABASE_URL}
       - SECRET_KEY=${SECRET_KEY}
+      - TURNSTILE_SECRET_KEY=${TURNSTILE_SECRET_KEY}
       - DEBUG=True
     ports:
       - '8000:8000'
@@ -21,8 +22,9 @@ services:
     container_name: dancelearn_frontend
     environment:
       - VITE_API_URL=http://localhost:8000/api
+      - VITE_TURNSTILE_SITE_KEY=${VITE_TURNSTILE_SITE_KEY}
     ports:
-      - '5173:5173'
+     - '5173:5173'
     volumes:
       - ./frontend:/app
       - /app/node_modules

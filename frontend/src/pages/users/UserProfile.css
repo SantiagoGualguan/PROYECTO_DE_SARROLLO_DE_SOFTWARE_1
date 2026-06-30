@@ -1,0 +1,84 @@
+.userprofile-container {
+  padding-top: var(--space-2xl);
+  padding-bottom: var(--space-2xl);
+}
+
+.userprofile-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xl);
+}
+
+.userprofile-title {
+  font-family: var(--font-body);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.userprofile-subtitle {
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  color: #666;
+  margin: 0;
+}
+
+.userprofile-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.userprofile-info-card {
+  background-color: var(--color-peach);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-sm);
+}
+
+.userprofile-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  font-family: var(--font-body);
+  flex-shrink: 0;
+}
+
+.userprofile-info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.userprofile-info-name {
+  font-family: var(--font-body);
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.userprofile-info-email {
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  color: #666;
+  margin: 0;
+}
+
+.userprofile-divider {
+  border: none;
+  border-top: 1px solid #eee;
+  margin: var(--space-sm) 0;
+}

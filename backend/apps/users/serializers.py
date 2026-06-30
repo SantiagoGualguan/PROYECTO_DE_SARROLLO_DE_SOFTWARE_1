@@ -92,38 +92,6 @@ class InternalUserCreateSerializer(serializers.Serializer):
 
         return normalized_role
 
-
-class InternalUserListSerializer(serializers.ModelSerializer):
-    nombre = serializers.SerializerMethodField()
-    correo = serializers.SerializerMethodField()
-    identificacion = serializers.SerializerMethodField()
-    rol = serializers.CharField(source="u_type")
-
-    class Meta:
-        model = CustomUser
-        fields = [
-            "id",
-            "nombre",
-            "correo",
-            "identificacion",
-            "rol",
-            "is_active",
-            "validated",
-            "creation_date",
-        ]
-
-    def get_nombre(self, obj):
-        return f"{obj.u_name} {obj.last_name}".strip()
-
-    def get_correo(self, obj):
-        first_email = next(iter(obj.emails.all()), None)
-        return first_email.email if first_email else None
-
-    def get_identificacion(self, obj):
-        first_phone = next(iter(obj.phone_numbers.all()), None)
-        return first_phone.p_number if first_phone else None
-
-
 class InternalUserUpdateSerializer(serializers.Serializer):
     nombre = serializers.CharField(max_length=100, required=False)
     identificacion = serializers.CharField(max_length=15, required=False)
@@ -188,3 +156,100 @@ class InternalUserUpdateSerializer(serializers.Serializer):
                 )
 
         return attrs
+
+
+class ClientProfileUpdateSerializer(serializers.Serializer):
+    nombre = serializers.CharField(max_length=100, required=False)
+    correo = serializers.EmailField(required=False)
+    identificacion = serializers.CharField(max_length=15, required=False)
+    contrasena = serializers.CharField(write_only=True, min_length=8, required=False)
+
+    def validate_nombre(self, value):
+        cleaned_value = value.strip()
+        if not cleaned_value:
+            raise serializers.ValidationError("El nombre es obligatorio.")
+        return cleaned_value
+
+    def validate_identificacion(self, value):
+        cleaned_value = value.strip()
+        if not cleaned_value:
+            raise serializers.ValidationError("La identificacion es obligatoria.")
+        if len(cleaned_value) > 15:
+            raise serializers.ValidationError(
+                "La identificacion no puede superar 15 caracteres."
+            )
+        return cleaned_value
+
+    def validate_correo(self, value):
+        return value.strip().lower()
+
+    def validate(self, attrs):
+        if not attrs:
+            raise serializers.ValidationError(
+                {"detail": "Debe enviar al menos un campo valido para actualizar."}
+            )
+
+        user = self.context.get("user")
+        correo = attrs.get("correo")
+        if correo:
+            existing_email = UserEmail.objects.filter(email__iexact=correo)
+            if user is not None:
+                existing_email = existing_email.exclude(user=user)
+            if existing_email.exists():
+                raise serializers.ValidationError(
+                    {"correo": "El correo ya esta registrado."}
+                )
+
+        identificacion = attrs.get("identificacion")
+        if identificacion:
+            existing_phone = UserPhoneNumber.objects.filter(p_number=identificacion)
+            if user is not None:
+                existing_phone = existing_phone.exclude(user=user)
+            if existing_phone.exists():
+                raise serializers.ValidationError(
+                    {"identificacion": "La identificacion ya esta registrada."}
+                )
+
+        return attrs
+
+class InternalUserListSerializer(serializers.ModelSerializer):
+    nombre = serializers.SerializerMethodField()
+    correo = serializers.SerializerMethodField()
+    identificacion = serializers.SerializerMethodField()
+    rol = serializers.CharField(source="u_type")
+    biography = serializers.SerializerMethodField()
+    years_of_experience = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            "id",
+            "nombre",
+            "correo",
+            "identificacion",
+            "rol",
+            "is_active",
+            "validated",
+            "creation_date",
+            "biography",
+            "years_of_experience",
+        ]
+
+    def get_nombre(self, obj):
+        return f"{obj.u_name} {obj.last_name}".strip()
+
+    def get_correo(self, obj):
+        first_email = next(iter(obj.emails.all()), None)
+        return first_email.email if first_email else None
+
+    def get_identificacion(self, obj):
+        first_phone = next(iter(obj.phone_numbers.all()), None)
+        return first_phone.p_number if first_phone else None
+
+    def get_biography(self, obj):
+        profesor = getattr(obj, "profesor_profile", None)
+        return profesor.biography if profesor else None
+
+    def get_years_of_experience(self, obj):
+        profesor = getattr(obj, "profesor_profile", None)
+        return profesor.years_of_experience if profesor else None
