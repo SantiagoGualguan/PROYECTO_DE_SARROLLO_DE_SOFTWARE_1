@@ -5,6 +5,7 @@ from urllib.request import Request, urlopen
 
 from django.conf import settings
 from django.contrib.auth.hashers import make_password
+from django.core.mail import send_mail
 from django.core import signing
 from django.db import connection, transaction
 from django.db.models import Q, Value
@@ -442,13 +443,26 @@ class AuthViewSet(viewsets.ViewSet):
             )
 
         reset_token = signing.dumps({"user_id": user.id}, salt=PASSWORD_RESET_TOKEN_SALT)
+        reset_url = request.build_absolute_uri(f"/api/auth/reset-password/{reset_token}/")
+        user_email = _get_primary_email(user)
+
+        if user_email:
+            send_mail(
+                subject="Recuperacion de contrasena - DanceLearn",
+                message=(
+                    "Hemos recibido una solicitud para restablecer tu contrasena.\n\n"
+                    f"Usa este enlace para continuar: {reset_url}\n\n"
+                    "Si no solicitaste este cambio, ignora este mensaje."
+                ),
+                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None),
+                recipient_list=[user_email],
+                fail_silently=False,
+            )
 
         return Response(
             {
                 "detail": "Se genero un token de recuperacion de contrasena.",
                 "user_id": user.id,
-                "reset_token": reset_token,
-                "reset_url": f"/api/auth/reset-password/{reset_token}/",
             },
             status=status.HTTP_200_OK,
         )

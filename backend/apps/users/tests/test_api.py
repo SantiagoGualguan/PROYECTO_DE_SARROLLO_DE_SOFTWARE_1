@@ -253,9 +253,17 @@ class AuthTokenRefreshTest(SimpleTestCase):
 class AuthRecoverPasswordTest(SimpleTestCase):
     @patch("apps.users.views.verify_turnstile_token", return_value=True)
     @patch("apps.users.views.signing")
+    @patch("apps.users.views.send_mail")
     @patch("apps.users.views._find_user_by_identifier")
     @patch("apps.users.views.CustomUser.objects")
-    def test_recover_success(self, mock_user_objects, mock_find, mock_signing, mock_turnstile):
+    def test_recover_success(
+        self,
+        mock_user_objects,
+        mock_find,
+        mock_send_mail,
+        mock_signing,
+        mock_turnstile,
+    ):
         user = _make_user()
         mock_find.return_value = user
         mock_signing.dumps.return_value = "reset-token-123"
@@ -266,7 +274,10 @@ class AuthRecoverPasswordTest(SimpleTestCase):
         })
         response = AuthViewSet.as_view({"post": "recover_password"})(req)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("reset_token", response.data)
+        self.assertNotIn("reset_token", response.data)
+        self.assertNotIn("reset_url", response.data)
+        mock_send_mail.assert_called_once()
+        self.assertIn("reset-token-123", mock_send_mail.call_args.kwargs["message"])
 
     def test_recover_missing_identifier(self):
         req = _build_request("post", "/api/auth/recover-password/", {})

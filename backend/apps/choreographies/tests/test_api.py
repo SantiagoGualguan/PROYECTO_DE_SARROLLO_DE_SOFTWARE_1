@@ -113,11 +113,26 @@ class CoreographyDestroyTest(SimpleTestCase):
 
 
 class CoreographyTopSellingTest(SimpleTestCase):
-    def test_top_selling_not_implemented(self):
+    @patch.object(CoreographyViewSet, 'filter_queryset')
+    @patch.object(CoreographyViewSet, 'get_serializer')
+    def test_top_selling_returns_ordered_results(self, mock_serializer, mock_filter):
+        first = _make_coreography(coreography_id=2, times_sold=15)
+        second = _make_coreography(coreography_id=1, times_sold=7)
+        qs = MagicMock()
+        qs.order_by.return_value = qs
+        qs.__iter__.return_value = [first, second]
+        mock_filter.return_value = qs
+        mock_serializer.return_value.data = [
+            {"coreography_id": first.coreography_id, "times_sold": first.times_sold},
+            {"coreography_id": second.coreography_id, "times_sold": second.times_sold},
+        ]
+
         req = factory.get("/api/choreographies/top-selling/")
         view = CoreographyViewSet.as_view({"get": "top_selling"})
-        with self.assertRaises(NotImplementedError):
-            view(req)
+        response = view(req)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[0]["times_sold"], 15)
+        qs.order_by.assert_called_with("-times_sold", "-coreography_id")
 
 
 # ---------------------------------------------------------------------------
