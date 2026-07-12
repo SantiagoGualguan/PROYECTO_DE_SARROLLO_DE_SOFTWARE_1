@@ -10,3 +10,4 @@ django-simple-captcha==0.5.20
 python-decouple==3.8
 
 django-filter==23.5
+stripe==15.3.0
