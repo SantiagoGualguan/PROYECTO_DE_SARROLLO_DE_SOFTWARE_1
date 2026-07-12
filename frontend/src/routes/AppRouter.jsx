@@ -35,6 +35,7 @@ import LandingPageV2 from "../pages/public/LandingPageV2";
 import TeacherApplicationList from "../pages/users/TeacherApplicationList";
 import UserEditForm from "../pages/users/UserEditForm";
 import DashboardRedirect from "../components/common/DashboardRedirect.jsx";
+import Coreografias from "../pages/choreographies/Coreografias.jsx";
 
 // RUTAS PÚBLICAS (sin auth):
 // / → LandingPage
@@ -108,8 +109,8 @@ const AppRouter = () => {
       <Route
         path="/coreografias"
         element={
-          <ProtectedRoute allowedRoles={["admin", "director", "profesor"]}>
-            <ChoreographyList />
+          <ProtectedRoute>
+            <Coreografias />
           </ProtectedRoute>
         }
       />

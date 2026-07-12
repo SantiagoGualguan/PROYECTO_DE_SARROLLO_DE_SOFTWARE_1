@@ -1,0 +1,331 @@
+/* src/pages/ChoreographyDetail/ChoreographyDetail.css */
+
+/* ── Contenedor principal ────────────────────────────────────────────────── */
+.choreography-detail-container {
+  padding-top: var(--space-xl);
+  padding-bottom: var(--space-2xl);
+  /* El `container` de Bootstrap ya aplica padding horizontal responsivo.   */
+  /* Añadimos margen lateral extra para que no quede pegado en pantallas    */
+  /* grandes, respetando el sistema de espaciado del proyecto.              */
+}
+
+/* ── Botón volver ─────────────────────────────────────────────────────────── */
+.choreography-detail-back {
+  margin-bottom: var(--space-lg);
+}
+
+.choreography-detail-back-btn {
+  /* Bootstrap btn-link ya quita el fondo; solo ajustamos color y padding.  */
+  color: var(--color-text-primary) !important;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  font-weight: 600;
+  text-decoration: none !important;
+}
+
+.choreography-detail-back-btn:hover {
+  color: var(--color-primary) !important;
+}
+
+/* ── Trailer ──────────────────────────────────────────────────────────────── */
+/* El trailer ocupa toda la columna izquierda con aspect-ratio 16/9.        */
+.choreography-detail-trailer {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  background-color: var(--color-background-subtle);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.choreography-detail-trailer img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 0.88;
+}
+
+/* Degradado oscuro para que el botón de play y la etiqueta "Trailer"       */
+/* sean legibles sobre cualquier imagen.                                     */
+.choreography-detail-trailer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.04) 0%,
+    rgba(15, 23, 42, 0.28) 100%
+  );
+  z-index: 1;
+}
+
+/* Etiqueta "Trailer" — esquina superior izquierda */
+.choreography-detail-tag {
+  position: absolute;
+  top: var(--space-md);
+  left: var(--space-md);
+  padding: 0.3rem 0.85rem;
+  background: rgba(15, 23, 42, 0.75);
+  color: #fff;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  border-radius: 9999px;
+  z-index: 2;
+  letter-spacing: 0.03em;
+}
+
+/* Botón play centrado */
+.choreography-detail-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  z-index: 2;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.choreography-detail-play:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.choreography-detail-play svg {
+  font-size: 2.4rem;
+  color: #fff;
+}
+
+/* ── Panel de información (columna derecha) ──────────────────────────────── */
+.choreography-detail-info {
+  background: var(--color-surface);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-xl);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  height: 100%;
+}
+
+/* Cabecera: nombre + chip de nivel */
+.choreography-detail-info-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.choreography-detail-title {
+  font-family: var(--font-body);
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  color: var(--color-text-primary);
+  line-height: 1.15;
+  margin: 0;
+}
+
+/* Profesor en la parte superior derecha, como en el mockup */
+.choreography-detail-professor-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+  justify-content: flex-end;
+}
+
+.choreography-detail-professor-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: var(--font-size-xs);
+  flex-shrink: 0;
+}
+
+.choreography-detail-professor-name {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+/* Colección de videos */
+.choreography-detail-meta {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0 0 var(--space-sm);
+}
+
+/* Precio — rosa primario, igual que en la card */
+.choreography-detail-price {
+  font-family: var(--font-body);
+  font-size: var(--font-size-xl);
+  font-weight: 800;
+  color: var(--color-primary);
+  margin: 0 0 var(--space-lg);
+}
+
+/* ── Datos tabulados ──────────────────────────────────────────────────────── */
+.choreography-detail-data {
+  margin-bottom: var(--space-lg);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-md);
+}
+
+.choreography-detail-data-item {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: flex-start;
+  margin-bottom: var(--space-xs);
+}
+
+.choreography-detail-data-label {
+  min-width: 9rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.choreography-detail-data-value {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+/* ── Botones de compra ────────────────────────────────────────────────────── */
+.choreography-detail-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* "Comprar ahora" — botón primario rosa, igual que en el mockup */
+.choreography-btn-primary {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: #fff !important;
+  border-radius: 9999px !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  padding: 0.85rem 1.25rem !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.choreography-btn-primary:hover {
+  background-color: var(--color-primary-dark, #b91c6e) !important;
+  border-color: var(--color-primary-dark, #b91c6e) !important;
+}
+
+/* "Añadir al carrito" — botón con borde, sin fondo */
+.choreography-btn-outline {
+  border: 1.5px solid var(--color-primary) !important;
+  color: var(--color-primary) !important;
+  background: transparent !important;
+  border-radius: 9999px !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  padding: 0.85rem 1.25rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: var(--space-xs) !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.choreography-btn-outline:hover {
+  background: var(--color-primary-light, #fbeaf0) !important;
+}
+
+/* ── Sección de videos ────────────────────────────────────────────────────── */
+.choreography-detail-videos {
+  margin-top: var(--space-2xl);
+  background: var(--color-background-subtle);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-xl);
+}
+
+.choreography-detail-videos-title {
+  font-family: var(--font-body);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-lg);
+}
+
+/* Card de cada video */
+.choreography-video-card {
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  background: var(--color-surface);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.choreography-video-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Miniatura placeholder de cada video — fondo rosa claro */
+.choreography-video-thumb {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: grid;
+  place-items: center;
+  background-color: var(--color-primary-light, #fbeaf0);
+}
+
+.choreography-video-thumb svg {
+  font-size: 2rem;
+  color: var(--color-primary);
+}
+
+.choreography-video-title {
+  padding: var(--space-sm) var(--space-md);
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 767.98px) {
+  .choreography-detail-info {
+    padding: var(--space-lg);
+  }
+
+  .choreography-detail-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .choreography-detail-price {
+    font-size: var(--font-size-lg);
+  }
+
+  .choreography-detail-data-label {
+    min-width: 7rem;
+  }
+
+  .choreography-detail-videos {
+    padding: var(--space-lg);
+  }
+}
