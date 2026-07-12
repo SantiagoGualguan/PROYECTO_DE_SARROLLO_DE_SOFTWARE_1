@@ -12,17 +12,8 @@ from apps.cart.models import ShoppingCart
 
 from .models import Bill, Purchase, UserCoreography
 
+from .serializers import CreatePurchaseSerializer, PurchaseHistorySerializer
 
-class PurchaseViewSet(viewsets.ModelViewSet):
-    """
-    SALES:
-    - POST /api/sales/                  # crear venta (paso final)
-    - GET /api/sales/                   # historial del cliente
-    - GET /api/sales/<id>/              # detalle de venta
-    - POST /api/sales/confirm-items/    # paso 1 wizard
-    - POST /api/sales/confirm-billing/  # paso 2 wizard
-    - POST /api/sales/confirm-payment/  # paso 3 wizard
-    """
 
     queryset = Purchase.objects.all()
 
@@ -485,3 +476,18 @@ class PurchaseViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK,
         )
 
+    def retrieve(self, request, pk=None):
+        user = request.user
+        purchase = Purchase.objects.filter(
+            purchase_id=pk, cart__user=user
+        ).select_related("cart").prefetch_related(
+            "bills", "user_coreographies__coreography"
+        ).first()
+        if not purchase:
+            return Response(
+                {"detail": "Compra no encontrada."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = PurchaseHistorySerializer(purchase)
+        return Response(serializer.data)
