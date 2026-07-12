@@ -15,6 +15,8 @@ def _make_user(user_id=1):
     user.id = user_id
     user.pk = user_id
     user.is_authenticated = True
+    user.is_active = True
+    user.u_type = "client"
     return user
 
 
@@ -165,6 +167,18 @@ class PurchaseViewSetTest(SimpleTestCase):
         self.assertEqual(response.data["billing"]["email_address"], "buyer@test.com")
         self.assertEqual(request.session["sales_checkout"]["cart_id"], 1)
         self.assertEqual(request.session["sales_checkout"]["billing"]["titular_name"], "Buyer Name")
+
+    def test_confirm_payment_rejects_non_client_user(self):
+        non_client = _make_user()
+        non_client.u_type = "admin"
+
+        request = factory.post("/api/sales/confirm-payment/", {}, format="json")
+        force_authenticate(request, user=non_client)
+        request.session = {}
+
+        response = PurchaseViewSet.as_view({"post": "confirm_payment"})(request)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     @patch.object(PurchaseViewSet, "_serialize_bill", return_value={"id": 9})
     @patch.object(PurchaseViewSet, "_serialize_purchase", return_value={"purchase_id": 8})

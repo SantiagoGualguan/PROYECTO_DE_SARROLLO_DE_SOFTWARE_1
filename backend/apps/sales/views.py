@@ -6,16 +6,28 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.cart.models import ShoppingCart
+from apps.cart.permissions import IsClientRole
 
 from .models import Bill, Purchase, UserCoreography
 
-from .serializers import CreatePurchaseSerializer, PurchaseHistorySerializer
 
+class PurchaseViewSet(viewsets.ModelViewSet):
+    """
+    SALES:
+    - POST /api/sales/                  # crear venta (paso final)
+    - GET /api/sales/                   # historial del cliente
+    - GET /api/sales/<id>/              # detalle de venta
+    - POST /api/sales/confirm-items/    # paso 1 wizard
+    - POST /api/sales/confirm-billing/  # paso 2 wizard
+    - POST /api/sales/confirm-payment/  # paso 3 wizard
+    """
 
     queryset = Purchase.objects.all()
+    permission_classes = [IsAuthenticated, IsClientRole]
 
     def _require_authenticated_user(self, request):
         if not request.user or not request.user.is_authenticated:
@@ -140,7 +152,7 @@ from .serializers import CreatePurchaseSerializer, PurchaseHistorySerializer
             raise ValueError("El carrito no contiene items.")
 
         total_amount = sum((Decimal(str(item.unit_price)) for item in cart_items), Decimal("0"))
-        bill_payment_method = billing_data.get("payment_method") or billing_data.get("bill_payment_method")
+        bill_payment_method = payment_method if payment_method in {"pse", "card"} else "card"
         if bill_payment_method not in {"pse", "card"}:
             bill_payment_method = "card"
 
@@ -372,11 +384,13 @@ from .serializers import CreatePurchaseSerializer, PurchaseHistorySerializer
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        amount = request.data.get("amount") or staged_data.get("total_amount")
-        if amount is None:
-            amount = self._calculate_cart_total(cart)
-
+        amount = self._calculate_cart_total(cart)
         payment_method = request.data.get("payment_method")
+        bill_payment_method = (
+            request.data.get("bill_payment_method")
+            or staged_data.get("billing", {}).get("payment_method")
+            or "card"
+        )
         currency = request.data.get("currency") or staged_data.get("currency") or "usd"
 
         billing_data = staged_data.get("billing", {}).copy()
@@ -389,7 +403,7 @@ from .serializers import CreatePurchaseSerializer, PurchaseHistorySerializer
             }
         )
 
-        if not amount or not payment_method:
+        if amount is None or not payment_method:
             return Response(
                 {"detail": "El monto y el método de pago son requeridos."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -415,7 +429,7 @@ from .serializers import CreatePurchaseSerializer, PurchaseHistorySerializer
         stripe.api_key = stripe_secret_key
 
         try:
-            amount_value = int(Decimal(str(amount)))
+            amount_value = int((Decimal(str(amount)) * Decimal("100")).to_integral_value())
         except (InvalidOperation, TypeError, ValueError):
             return Response(
                 {"detail": "El monto no es valido."},
@@ -455,13 +469,17 @@ from .serializers import CreatePurchaseSerializer, PurchaseHistorySerializer
                 user=request.user,
                 cart=cart,
                 payment_intent_id=intent.id,
-                payment_method=payment_method,
+                payment_method=bill_payment_method,
                 billing_data=billing_data,
             )
         except ValueError as exc:
+            try:
+                stripe.Refund.create(payment_intent=intent.id)
+            except stripe.error.StripeError:
+                pass
             return Response(
-                {"detail": str(exc)},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"detail": str(exc), "refund_attempted": True},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         return Response(
@@ -476,18 +494,3 @@ from .serializers import CreatePurchaseSerializer, PurchaseHistorySerializer
             status=status.HTTP_200_OK,
         )
 
-    def retrieve(self, request, pk=None):
-        user = request.user
-        purchase = Purchase.objects.filter(
-            purchase_id=pk, cart__user=user
-        ).select_related("cart").prefetch_related(
-            "bills", "user_coreographies__coreography"
-        ).first()
-        if not purchase:
-            return Response(
-                {"detail": "Compra no encontrada."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        serializer = PurchaseHistorySerializer(purchase)
-        return Response(serializer.data)
