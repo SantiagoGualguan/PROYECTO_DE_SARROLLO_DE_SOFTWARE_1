@@ -9,6 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 TURNSTILE_SECRET_KEY = os.getenv("TURNSTILE_SECRET_KEY")
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'change-me')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
