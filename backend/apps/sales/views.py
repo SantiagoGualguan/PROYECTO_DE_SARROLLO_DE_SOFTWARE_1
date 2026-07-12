@@ -1,46 +1,91 @@
-from rest_framework import viewsets
+from decimal import Decimal
+
+from django.db import connection, transaction, DatabaseError
+from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.viewsets import ViewSet
 
-from .models import Purchase
-from .serializers import PurchaseSerializer
+from apps.cart.models import ShoppingCart
+from apps.cart.permissions import IsClientRole
+from apps.sales.models import Bill, Purchase, UserCoreography
+
+from .serializers import CreatePurchaseSerializer, PurchaseHistorySerializer
 
 
-class PurchaseViewSet(viewsets.ModelViewSet):
-    """
-    SALES:
-    - POST /api/sales/                  # crear venta (paso final)
-    - GET /api/sales/                   # historial del cliente
-    - GET /api/sales/<id>/              # detalle de venta
-    - POST /api/sales/confirm-items/    # paso 1 wizard
-    - POST /api/sales/confirm-billing/  # paso 2 wizard
-    - POST /api/sales/confirm-payment/  # paso 3 wizard
-    """
+class PurchaseViewSet(ViewSet):
+    permission_classes = [IsAuthenticated, IsClientRole]
 
-    queryset = Purchase.objects.all()
-    serializer_class = PurchaseSerializer
+    def list(self, request):
+        user = request.user
+        purchases = Purchase.objects.filter(
+            cart__user=user, cart__s_status="completed"
+        ).select_related("cart").prefetch_related(
+            "bills", "user_coreographies__coreography"
+        ).order_by("-purchase_date", "-purchase_id")
 
-    def list(self, request, *args, **kwargs):
-        raise NotImplementedError("TODO: implementar historial de ventas del cliente")
+        serializer = PurchaseHistorySerializer(purchases, many=True)
+        return Response(serializer.data)
 
-    def create(self, request, *args, **kwargs):
-        raise NotImplementedError("TODO: implementar creación de venta")
+    def create(self, request):
+        serializer = CreatePurchaseSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-    def retrieve(self, request, *args, **kwargs):
-        raise NotImplementedError("TODO: implementar detalle de venta")
+        user = request.user
+        cart = ShoppingCart.objects.filter(
+            user=user, s_status="active"
+        ).first()
+        if not cart:
+            return Response(
+                {"detail": "No tienes un carrito activo."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    @action(detail=False, methods=["post"], url_path="confirm-items")
-    def confirm_items(self, request):
-        raise NotImplementedError("TODO: implementar confirmación de ítems (paso 1)")
+        cart_item_count = cart.items.count()
+        if cart_item_count == 0:
+            return Response(
+                {"detail": "El carrito está vacío."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    @action(detail=False, methods=["post"], url_path="confirm-billing")
-    def confirm_billing(self, request):
-        raise NotImplementedError(
-            "TODO: implementar confirmación de datos de facturación (paso 2)"
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT create_purchase(%s, %s, %s, %s, %s, %s, %s)",
+                    [
+                        user.id,
+                        cart.cart_id,
+                        serializer.validated_data["payment_method"],
+                        serializer.validated_data["email_address"],
+                        serializer.validated_data["titular_name"],
+                        serializer.validated_data["document_number"],
+                        serializer.validated_data.get("details", ""),
+                    ],
+                )
+        except DatabaseError as exc:
+            return Response(
+                {"detail": f"Error al procesar la compra: {exc}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            {"detail": "Compra realizada exitosamente."},
+            status=status.HTTP_201_CREATED,
         )
 
-    @action(detail=False, methods=["post"], url_path="confirm-payment")
-    def confirm_payment(self, request):
-        raise NotImplementedError(
-            "TODO: implementar confirmación de pago simulado (paso 3)"
-        )
+    def retrieve(self, request, pk=None):
+        user = request.user
+        purchase = Purchase.objects.filter(
+            purchase_id=pk, cart__user=user
+        ).select_related("cart").prefetch_related(
+            "bills", "user_coreographies__coreography"
+        ).first()
+        if not purchase:
+            return Response(
+                {"detail": "Compra no encontrada."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
+        serializer = PurchaseHistorySerializer(purchase)
+        return Response(serializer.data)
