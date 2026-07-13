@@ -218,7 +218,7 @@ const ProfesorChoreographyList = () => {
         showSearch={true}
         navItems={[
           { label: "Dashboard", to: "/dashboard" },
-          { label: "Catalogo", to: "/coreografias" },
+          { label: "Catalogo", to: "/catalogo" },
           { label: "Mis coreografías", to: "/profesor/coreografias" },
         ]}
         menuItems={[

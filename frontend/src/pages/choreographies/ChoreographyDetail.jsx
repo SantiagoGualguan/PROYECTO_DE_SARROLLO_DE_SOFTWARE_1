@@ -92,7 +92,14 @@ const CoreografiaDetail = () => {
   const [comprando, setComprando] = useState(false);
   const [snack, setSnack] = useState({ open: false, message: "" });
 
+  const esTrailer = (v) => v.video_name?.toLowerCase().includes("trailer");
+
   const isClient = user?.role === "client";
+
+  const trailer = videos.find(esTrailer) ?? videos[0] ?? null;
+  const videosSecundarios = videos.filter(
+    (v) => v.video_id !== trailer?.video_id,
+  );
 
   const cargarDetalle = useCallback(async () => {
     setCargando(true);
@@ -342,8 +349,15 @@ const CoreografiaDetail = () => {
 
         {/* ── Columna de contenido: imagen + videos ── */}
         <div className="order-2 lg:order-1 lg:col-span-2 flex flex-col gap-6">
-          <div className="h-64 sm:h-80 lg:h-96 rounded-2xl overflow-hidden bg-gradient-to-br from-pink-100 to-orange-100 flex items-center justify-center">
-            {coreografia.image_url ? (
+          <div className="h-64 sm:h-80 lg:h-96 rounded-2xl overflow-hidden bg-black flex items-center justify-center">
+            {trailer ? (
+              <iframe
+                src={trailer.video_url}
+                title={trailer.video_name}
+                className="w-full h-full"
+                allowFullScreen
+              />
+            ) : coreografia.image_url ? (
               <img
                 src={coreografia.image_url}
                 alt={coreografia.c_name}
@@ -361,7 +375,7 @@ const CoreografiaDetail = () => {
               Videos
             </Typography>
 
-            {videos.length === 0 ? (
+            {videosSecundarios.length === 0 ? (
               <Card sx={{ borderRadius: 3, p: 4, textAlign: "center" }}>
                 <Typography color="text.secondary">
                   Todavía no hay videos cargados para esta coreografía.
@@ -369,7 +383,7 @@ const CoreografiaDetail = () => {
               </Card>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {videos.map((v) => (
+                {videosSecundarios.map((v) => (
                   <Card
                     key={v.video_id}
                     sx={{

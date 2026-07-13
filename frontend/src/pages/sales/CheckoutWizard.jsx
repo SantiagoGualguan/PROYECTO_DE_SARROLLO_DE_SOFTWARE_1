@@ -18,6 +18,8 @@ import Alert from "@mui/material/Alert";
 import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 import { SalesService } from "../../api/salesService";
 
@@ -35,6 +37,11 @@ const CheckoutWizard = () => {
     titular_name: "",
     document_number: "",
   });
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   const [paymentMethod, setPaymentMethod] = useState("pse");
 
