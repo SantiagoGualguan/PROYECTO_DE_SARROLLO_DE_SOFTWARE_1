@@ -47,6 +47,7 @@ import Button from "../../components/ui/Button/Button.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { CoreographyService } from "../../api/choreographyService.js";
 import LogoutIcon from "@mui/icons-material/Logout";
+import Footer from "../../components/layout/Footer/Footer.jsx";
 import "./ProfesorChoreographyList.css";
 
 const DIFICULTAD_LABELS = {
@@ -328,6 +329,7 @@ const ProfesorChoreographyList = () => {
           />
         </DialogActions>
       </Dialog>
+      <Footer />
     </div>
   );
 };

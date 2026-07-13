@@ -11,6 +11,7 @@ import Grid from "@mui/material/Grid";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import LogoutIcon from "@mui/icons-material/Logout";
+import Footer from "../../components/layout/Footer/Footer.jsx";
 import { useAuth } from "../../context/AuthContext";
 import { SalesService } from "../../api/salesService";
 
@@ -218,6 +219,7 @@ const PurchaseHistory = () => {
           </Grid>
         )}
       </div>
+      <Footer />
     </div>
   );
 };

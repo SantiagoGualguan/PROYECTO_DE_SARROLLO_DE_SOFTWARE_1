@@ -16,6 +16,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import LogoutIcon from "@mui/icons-material/Logout";
 import EditIcon from "@mui/icons-material/Edit";
 import Button from "../../components/ui/Button/Button.jsx";
+import Footer from "../../components/layout/Footer/Footer.jsx";
 import { UserService } from "../../api/userService.js";
 import { useAuth } from "../../context/AuthContext";
 import "./UserList.css";
@@ -286,6 +287,7 @@ const UserList = () => {
           />
         </DialogActions>
       </Dialog>
+      <Footer />
     </div>
   );
 };

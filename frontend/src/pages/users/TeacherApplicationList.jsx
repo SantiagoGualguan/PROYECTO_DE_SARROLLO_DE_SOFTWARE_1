@@ -8,6 +8,7 @@ import Header from "../../components/layout/Header/Header.jsx";
 import { UserService } from "../../api/userService.js";
 import { useAuth } from "../../context/AuthContext";
 import LogoutIcon from "@mui/icons-material/Logout";
+import Footer from "../../components/layout/Footer/Footer.jsx";
 import "./TeacherApplicationList.css";
 
 const TeacherApplicationList = () => {
@@ -256,6 +257,7 @@ const TeacherApplicationList = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

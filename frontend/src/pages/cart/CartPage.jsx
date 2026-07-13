@@ -15,6 +15,7 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import { useAuth } from "../../context/AuthContext";
 import LogoutIcon from "@mui/icons-material/Logout";
+import Footer from "../../components/layout/Footer/Footer.jsx";
 import { useCart } from "../../context/CartContext";
 
 const CartPage = () => {
@@ -253,6 +254,7 @@ const CartPage = () => {
           </>
         )}
       </div>
+      <Footer />
     </div>
   );
 };
