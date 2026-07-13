@@ -16,6 +16,7 @@ import StorefrontIcon from "@mui/icons-material/Storefront";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import LogoutIcon from "@mui/icons-material/Logout";
+import Footer from "../../components/layout/Footer/Footer.jsx";
 import { useAuth } from "../../context/AuthContext";
 import { DashboardService } from "../../api/dashboardService";
 
@@ -475,6 +476,7 @@ const ClienteDashboard = () => {
           </Card>
         )}
       </div>
+      <Footer />
     </div>
   );
 };

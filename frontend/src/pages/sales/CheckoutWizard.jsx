@@ -40,6 +40,7 @@ const CheckoutWizardInner = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const { logout } = useAuth();
 
   const [billing, setBilling] = useState({
     email_address: "",

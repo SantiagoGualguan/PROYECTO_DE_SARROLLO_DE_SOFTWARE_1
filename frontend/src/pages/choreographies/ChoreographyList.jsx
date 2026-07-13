@@ -29,6 +29,7 @@ import { Chip, Avatar } from "@mui/material";
 import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
 import { CoreographyService } from "../../api/choreographyService.js";
 import LogoutIcon from "@mui/icons-material/Logout";
+import Footer from "../../components/layout/Footer/Footer.jsx";
 import { useAuth } from "../../context/AuthContext";
 import "./ChoreographyList.css";
 
@@ -252,6 +253,7 @@ const ChoreographyList = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

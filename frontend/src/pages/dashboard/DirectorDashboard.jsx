@@ -15,6 +15,7 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import LogoutIcon from "@mui/icons-material/Logout";
+import Footer from "../../components/layout/Footer/Footer.jsx";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { DashboardService } from "../../api/dashboardService";
@@ -245,6 +246,7 @@ const DirectorDashboard = () => {
           </Grid>
         </Grid>
       </div>
+      <Footer />
     </div>
   );
 };

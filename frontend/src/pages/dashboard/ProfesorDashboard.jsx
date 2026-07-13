@@ -16,6 +16,7 @@ import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import LogoutIcon from "@mui/icons-material/Logout";
+import Footer from "../../components/layout/Footer/Footer.jsx";
 import { useAuth } from "../../context/AuthContext";
 import { DashboardService } from "../../api/dashboardService";
 
@@ -313,6 +314,7 @@ const ProfesorDashboard = () => {
           </Grid>
         </Grid>
       </div>
+      <Footer />
     </div>
   );
 };
