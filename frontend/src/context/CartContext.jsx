@@ -50,8 +50,20 @@ export const CartProvider = ({ children }) => {
     setItems((prev) => prev.filter((i) => i.cart_item_id !== cartItemId));
   }, []);
 
+  // DELETE /api/cart/ empties the active cart. Treat 404 as already-empty
+  // (e.g. cart was completed by a successful purchase).
   const clearCart = useCallback(async () => {
-    await CartService.clearCart();
+    try {
+      await CartService.clearCart();
+    } catch (err) {
+      if (err.response?.status !== 404) throw err;
+    }
+    setItems([]);
+    setCartId(null);
+  }, []);
+
+  // Local-only clear after purchase: backend already sets s_status=completed.
+  const resetLocalCart = useCallback(() => {
     setItems([]);
     setCartId(null);
   }, []);
@@ -70,6 +82,7 @@ export const CartProvider = ({ children }) => {
     addItem,
     removeItem,
     clearCart,
+    resetLocalCart,
     refreshCart,
   };
 
