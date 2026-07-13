@@ -4,20 +4,44 @@
 // GET /api/videos/?coreography=:id.
 //
 // Misma lógica comercial de siempre (useCart, redirect a login, botón solo
-// para clientes, Snackbar), pero con un layout distinto: en vez de una sola
-// columna centrada, en desktop se parte en dos — contenido (imagen + videos)
-// a la izquierda, y una tarjeta de compra "sticky" a la derecha. En mobile
-// colapsa a una sola columna, con la tarjeta de compra primero para que el
-// precio y el botón queden arriba sin scroll.
+// para clientes, Snackbar), con layout partido en dos columnas en desktop.
+//
+// ── Control de acceso a videos (nuevo) ──────────────────────────────────────
+// El primer video (por video_id, orden de subida) es el trailer y lo puede
+// reproducir cualquiera. Los videos restantes solo se reproducen si el
+// usuario autenticado ya compró esta coreografía. Eso se valida contra
+// GET /api/sales/ (SalesService.getPurchaseHistory), buscando la coreografía
+// actual dentro de purchase.items[].coreography.coreography_id — mismo campo
+// que ya usa PurchaseHistory.jsx para listar los chips de cada compra.
+//
+// ⚠️ IMPORTANTE — esto es solo un bloqueo de UI, no seguridad real:
+// GET /api/videos/?coreography=:id es PÚBLICO (AllowAny) y ya devuelve la
+// video_url completa de TODOS los videos, compilados o no. Cualquiera que
+// abra la pestaña de Red del navegador puede copiar esa URL directamente,
+// sin pasar por este componente. Si video_url apunta a un archivo servido
+// directo (no un stream firmado/tokenizado), esto no evita la descarga o
+// reproducción por fuera de la app. Para bloquear de verdad hace falta que
+// el backend NO devuelva video_url de los videos no comprados (o devuelva
+// una URL firmada de corta duración) cuando el usuario no tiene acceso.
+// Coméntalo con el equipo de backend si este componente necesita ser la
+// única barrera.
 //
 // ── Supuestos a verificar ────────────────────────────────────────────────────
 // - Ruta esperada: /coreografias/:id (ajusta el nombre del param si tu router
 //   usa otro, ej. :coreografiaId).
 // - Rutas de import a 3 niveles ("../../../..."), igual que la versión corta
 //   que me pasaste. Ajusta si tu archivo vive en otra profundidad.
-// - No hay endpoint documentado para saber si el usuario YA compró esta
-//   coreografía (para desbloquear videos completos vs. preview). Se listan
-//   todos los videos que devuelva el backend tal cual.
+// - "Primer video" = video_id más bajo entre los videos de la coreografía
+//   (se ordenan explícitamente por video_id ascendente antes de elegir el
+//   trailer, para no depender del orden en que responda el backend).
+// - El chequeo de compra solo se hace si hay usuario autenticado con
+//   role === "client" (mismo criterio que ya usa el botón de compra). Otros
+//   roles (admin/profesor/director) NO desbloquean videos automáticamente;
+//   si tu flujo real quiere que profesores vean todo, avísame y lo ajusto.
+// - GET /api/sales/ no está documentado en el PDF de endpoints (ese doc solo
+//   describe /api/users/clients/me/history/), así que me guie por cómo lo
+//   consume PurchaseHistory.jsx: res.data es el arreglo de compras y cada
+//   compra trae items: [{ coreography: { coreography_id, c_name, ... } }].
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -35,6 +59,7 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import BoltIcon from "@mui/icons-material/Bolt";
 import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import LockIcon from "@mui/icons-material/Lock";
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
@@ -42,6 +67,7 @@ import {
   CoreographyService,
   VideoService,
 } from "../../api/choreographyService";
+import { SalesService } from "../../api/salesService";
 
 const difficultyColors = {
   basic: "success",
@@ -77,6 +103,23 @@ const normalizarVideo = (raw) => ({
   upload_date: raw.upload_date,
 });
 
+const normalizePurchaseHistory = (data) => {
+  if (Array.isArray(data)) return data;
+  return data?.results ?? [];
+};
+
+// Recorre el historial de compras y busca si `coreographyId` aparece en
+// alguno de los items de alguna compra. Compara como string porque el id de
+// la URL (useParams) siempre llega como string y coreography_id del backend
+// puede llegar como number.
+const buscarCompraDeCoreografia = (purchases, coreographyId) =>
+  purchases.some((p) =>
+    (p.items || []).some(
+      (item) =>
+        String(item?.coreography?.coreography_id) === String(coreographyId),
+    ),
+  );
+
 const CoreografiaDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -87,19 +130,20 @@ const CoreografiaDetail = () => {
   const [videos, setVideos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
+  const [hasPurchased, setHasPurchased] = useState(false);
+  const [purchaseLoading, setPurchaseLoading] = useState(false);
 
   const [agregando, setAgregando] = useState(false);
   const [comprando, setComprando] = useState(false);
   const [snack, setSnack] = useState({ open: false, message: "" });
 
-  const esTrailer = (v) => v.video_name?.toLowerCase().includes("trailer");
-
   const isClient = user?.role === "client";
 
-  const trailer = videos.find(esTrailer) ?? videos[0] ?? null;
-  const videosSecundarios = videos.filter(
-    (v) => v.video_id !== trailer?.video_id,
-  );
+  // Orden estable por video_id ascendente: el "primer video" (trailer) es
+  // siempre el de menor id, sin depender del orden de la respuesta del API.
+  const videosOrdenados = [...videos].sort((a, b) => a.video_id - b.video_id);
+  const trailer = videosOrdenados[0] ?? null;
+  const videosSecundarios = videosOrdenados.slice(1);
 
   const cargarDetalle = useCallback(async () => {
     setCargando(true);
@@ -135,9 +179,36 @@ const CoreografiaDetail = () => {
     }
   }, [id]);
 
+  // Verifica si el usuario (cliente autenticado) ya compró esta coreografía,
+  // para decidir si desbloquea los videos secundarios.
+  const cargarEstadoCompra = useCallback(async () => {
+    if (!user || !isClient) {
+      setHasPurchased(false);
+      setPurchaseLoading(false);
+      return;
+    }
+
+    setPurchaseLoading(true);
+    try {
+      const res = await SalesService.getPurchaseHistory();
+      const purchases = normalizePurchaseHistory(res.data);
+      setHasPurchased(buscarCompraDeCoreografia(purchases, id));
+    } catch (err) {
+      console.warn("No se pudo verificar el historial de compras:", err);
+      // Ante la duda, no desbloquear.
+      setHasPurchased(false);
+    } finally {
+      setPurchaseLoading(false);
+    }
+  }, [user, isClient, id]);
+
   useEffect(() => {
     cargarDetalle();
   }, [cargarDetalle]);
+
+  useEffect(() => {
+    cargarEstadoCompra();
+  }, [cargarEstadoCompra]);
 
   const handleAgregarAlCarrito = async () => {
     if (!user) {
@@ -233,7 +304,10 @@ const CoreografiaDetail = () => {
           En mobile se apila y la tarjeta de compra va primero. */}
       <div className="px-4 sm:px-6 lg:px-8 pb-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* ── Columna de compra (sticky en desktop) ── */}
-        <div className="order-1 lg:order-2 lg:col-span-1 lg:sticky lg:top-6">
+        <div
+          className="order-1 lg:order-2 lg:col-span-1 lg:sticky lg:top-6"
+          id="tarjeta-compra"
+        >
           <Card
             sx={{ borderRadius: 3, boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}
           >
@@ -299,7 +373,7 @@ const CoreografiaDetail = () => {
                 ${coreografia.price.toLocaleString("es-CO")}
               </Typography>
 
-              {isClient && (
+              {isClient && !hasPurchased && (
                 <div className="flex flex-col gap-2">
                   <Button
                     variant="contained"
@@ -322,6 +396,12 @@ const CoreografiaDetail = () => {
                     {agregando ? "Agregando..." : "Agregar al carrito"}
                   </Button>
                 </div>
+              )}
+
+              {isClient && hasPurchased && (
+                <Alert severity="success" icon={false} sx={{ py: 0.5 }}>
+                  Ya tienes acceso a esta coreografía
+                </Alert>
               )}
 
               {!user && (
@@ -393,15 +473,60 @@ const CoreografiaDetail = () => {
                     }}
                   >
                     <div className="aspect-video w-full bg-black">
-                      <iframe
-                        src={v.video_url}
-                        title={v.video_name}
-                        className="w-full h-full"
-                        allowFullScreen
-                      />
+                      {purchaseLoading ? (
+                        // Mientras se verifica la compra evitamos mostrar el
+                        // video "desbloqueado" un instante y luego bloquearlo
+                        // (flash). Placeholder neutro mientras tanto.
+                        <div className="w-full h-full flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-6 w-6 border-2 border-pink-400 border-t-transparent" />
+                        </div>
+                      ) : hasPurchased ? (
+                        <iframe
+                          src={v.video_url}
+                          title={v.video_name}
+                          className="w-full h-full"
+                          allowFullScreen
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-white px-4 text-center">
+                          <LockIcon sx={{ fontSize: "2rem", opacity: 0.8 }} />
+                          <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                            {user
+                              ? "Compra esta coreografía para ver este video"
+                              : "Inicia sesión y compra esta coreografía para verlo"}
+                          </Typography>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            sx={{
+                              color: "white",
+                              borderColor: "rgba(255,255,255,0.5)",
+                              mt: 0.5,
+                            }}
+                            onClick={() => {
+                              if (!user) {
+                                navigate("/login");
+                                return;
+                              }
+                              document
+                                .getElementById("tarjeta-compra")
+                                ?.scrollIntoView({ behavior: "smooth" });
+                            }}
+                          >
+                            {user ? "Ver precio" : "Iniciar sesión"}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                     <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{ fontWeight: 600 }}
+                        className="flex items-center gap-1"
+                      >
+                        {!purchaseLoading && !hasPurchased && (
+                          <LockIcon sx={{ fontSize: "1rem", opacity: 0.6 }} />
+                        )}
                         {v.video_name}
                       </Typography>
                     </CardContent>
