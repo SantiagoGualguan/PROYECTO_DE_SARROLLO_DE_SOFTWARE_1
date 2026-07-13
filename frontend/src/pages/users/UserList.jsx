@@ -13,9 +13,11 @@ import {
   DialogActions,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import LogoutIcon from "@mui/icons-material/Logout";
 import EditIcon from "@mui/icons-material/Edit";
 import Button from "../../components/ui/Button/Button.jsx";
 import { UserService } from "../../api/userService.js";
+import { useAuth } from "../../context/AuthContext";
 import "./UserList.css";
 
 const ROL_COLORS = {
@@ -27,10 +29,16 @@ const ROL_COLORS = {
 
 const UserList = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   // Estado para el diálogo de confirmación de eliminación
   const [deleteDialog, setDeleteDialog] = useState({
@@ -166,12 +174,24 @@ const UserList = () => {
         showSearch={true}
         navItems={[
           { label: "dashboard", to: "/dashboard" },
+          { label: "Catalogo", to: "/catalogo" },
           { label: "Usuarios", to: "/admin/usuarios" },
-          { label: "Coreografías", to: "/coreografias" },
+          { label: "Coreografías", to: "/admin/coreografias" },
         ]}
         menuItems={[
-          { label: "Lista de usuarios", to: "/admin/usuarios" },
+          { label: "Solicitudes de profesores", to: "/director/solicitudes" },
+          { label: "Usuarios", to: "/admin/usuarios" },
+          { label: "Coreografías", to: "/admin/coreografias" },
           { label: "Crear usuario", to: "/admin/usuarios/new" },
+        ]}
+        rightActions={[
+          {
+            label: "salir",
+            variant: "outlined",
+            color: "error",
+            icon: <LogoutIcon />,
+            onClick: handleLogout,
+          },
         ]}
       />
       <div className="container userlist-container">

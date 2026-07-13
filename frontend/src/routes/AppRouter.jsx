@@ -2,7 +2,7 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import LandingPage from "../pages/public/LandingPage/LandingPage";
-import CatalogPublic from "../pages/public/CatalogPublic";
+import CatalogPublic from "../pages/public/Catalog/Coreografias.jsx";
 import NotFound from "../pages/public/NotFound";
 
 import Login from "../pages/auth/Login";
@@ -22,6 +22,7 @@ import UserProfile from "../pages/users/UserProfile";
 import ChoreographyList from "../pages/choreographies/ChoreographyList";
 import ChoreographyDetail from "../pages/choreographies/ChoreographyDetail";
 import ChoreographyForm from "../pages/choreographies/ChoreographyForm";
+import ProfesorChoreographyList from "../pages/choreographies/ProfesorChoreographyList.jsx";
 
 import CartPage from "../pages/cart/CartPage";
 
@@ -35,7 +36,6 @@ import LandingPageV2 from "../pages/public/LandingPageV2";
 import TeacherApplicationList from "../pages/users/TeacherApplicationList";
 import UserEditForm from "../pages/users/UserEditForm";
 import DashboardRedirect from "../components/common/DashboardRedirect.jsx";
-import Coreografias from "../pages/choreographies/Coreografias.jsx";
 
 // RUTAS PÚBLICAS (sin auth):
 // / → LandingPage
@@ -105,17 +105,34 @@ const AppRouter = () => {
           </ProtectedRoute>
         }
       />
-      {/* Coreografías */}
+
       <Route
-        path="/coreografias"
+        path="/admin/coreografias"
         element={
-          <ProtectedRoute>
-            <Coreografias />
+          <ProtectedRoute allowedRoles={["admin", "director"]}>
+            <ChoreographyList />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profesor/coreografias"
+        element={
+          <ProtectedRoute allowedRoles={["profesor"]}>
+            <ProfesorChoreographyList />
           </ProtectedRoute>
         }
       />
       <Route
         path="/coreografias/new"
+        element={
+          <ProtectedRoute allowedRoles={["admin", "director", "profesor"]}>
+            <ChoreographyForm />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/coreografias/:id/editar"
         element={
           <ProtectedRoute allowedRoles={["admin", "director", "profesor"]}>
             <ChoreographyForm />

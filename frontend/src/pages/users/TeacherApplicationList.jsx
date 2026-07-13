@@ -6,6 +6,8 @@ import CheckIcon from "@mui/icons-material/Check";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import Header from "../../components/layout/Header/Header.jsx";
 import { UserService } from "../../api/userService.js";
+import { useAuth } from "../../context/AuthContext";
+import LogoutIcon from "@mui/icons-material/Logout";
 import "./TeacherApplicationList.css";
 
 const TeacherApplicationList = () => {
@@ -13,6 +15,12 @@ const TeacherApplicationList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   const fetchApplications = async () => {
     setLoading(true);
@@ -165,15 +173,28 @@ const TeacherApplicationList = () => {
       <Header
         showMenu={true}
         showFullLogo={true}
-        showSearch={false}
+        showSearch={true}
         navItems={[
+          { label: "Dashboard", to: "/dashboard" },
+          { label: "Catalogo", to: "/catalogo" },
           { label: "Solicitudes", to: "/admin/solicitudes-profesores" },
           { label: "Usuarios", to: "/admin/usuarios" },
-          { label: "Coreografías", to: "/coreografias" },
+          { label: "Coreografías", to: "/admin/coreografias" },
         ]}
         menuItems={[
           { label: "Solicitudes de profesores", to: "/director/solicitudes" },
           { label: "Usuarios", to: "/admin/usuarios" },
+          { label: "Coreografías", to: "/admin/coreografias" },
+          { label: "Crear usuario", to: "/admin/usuarios/new" },
+        ]}
+        rightActions={[
+          {
+            label: "salir",
+            variant: "outlined",
+            color: "error",
+            icon: <LogoutIcon />,
+            onClick: handleLogout,
+          },
         ]}
       />
 

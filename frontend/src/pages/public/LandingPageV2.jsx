@@ -17,7 +17,7 @@ import Footer from "../../components/layout/Footer/Footer";
 import sideBarMenu from "../../components/layout/SidebarMenu/SidebarMenu";
 import CoreografiaCarrusel from "../../components/common/CoreografiaCarrusel";
 import { coreografiasMock } from "../../components/common/CoreografiasMock";
-import coreografias from "../../pages/choreographies/Coreografias";
+import coreografias from "./Catalog/Coreografias";
 
 const LandingV2 = () => {
   const navigate = useNavigate();
