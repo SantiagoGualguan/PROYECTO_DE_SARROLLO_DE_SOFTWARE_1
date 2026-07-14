@@ -6,7 +6,6 @@ services:
     dns:
       - 8.8.8.8
       - 8.8.4.4
-      - 1.1.1.1
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.development
       - DATABASE_URL=${DATABASE_URL}
