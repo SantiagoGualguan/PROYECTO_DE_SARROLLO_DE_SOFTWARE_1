@@ -1,47 +1,48 @@
 // src/pages/Coreografias/CoreografiaDetail.jsx
 //
-// Página de detalle de una coreografía — GET /api/choreographies/:id/ +
-// GET /api/videos/?coreography=:id.
+// Página de detalle de una coreografía — GET /choreographies/:id/ +
+// GET /choreographies/videos/?coreography=:id.
 //
 // Misma lógica comercial de siempre (useCart, redirect a login, botón solo
 // para clientes, Snackbar), con layout partido en dos columnas en desktop.
 //
-// ── Control de acceso a videos (nuevo) ──────────────────────────────────────
+// ── Control de acceso a videos ──────────────────────────────────────────────
 // El primer video (por video_id, orden de subida) es el trailer y lo puede
 // reproducir cualquiera. Los videos restantes solo se reproducen si el
 // usuario autenticado ya compró esta coreografía. Eso se valida contra
-// GET /api/sales/ (SalesService.getPurchaseHistory), buscando la coreografía
-// actual dentro de purchase.items[].coreography.coreography_id — mismo campo
-// que ya usa PurchaseHistory.jsx para listar los chips de cada compra.
+// GET /sales/ (SalesService.getPurchaseHistory).
+//
+// ⚠️ FIX — por qué los videos se quedaban bloqueados con una coreografía ya
+// comprada: `buscarCompraDeCoreografia` solo miraba la forma ANIDADA del
+// item (item.coreography.coreography_id). salesService.js no documenta la
+// forma exacta de `items[]`, y todo indica que el backend real puede
+// devolverlo PLANO (item.coreography_id, sin objeto `coreography` anidado) —
+// es el mismo caso que ya nos habíamos encontrado armando la nueva página de
+// "Mis Compras". Con la forma plana, `item?.coreography?.coreography_id` da
+// siempre `undefined`, la comparación nunca coincide, y `hasPurchased` se
+// queda en `false` aunque la compra exista. `buscarCompraDeCoreografia`
+// ahora prueba primero la forma anidada y si no la encuentra cae a la plana,
+// igual que el normalizador que ya usa PurchaseHistory.jsx.
 //
 // ⚠️ IMPORTANTE — esto es solo un bloqueo de UI, no seguridad real:
-// GET /api/videos/?coreography=:id es PÚBLICO (AllowAny) y ya devuelve la
-// video_url completa de TODOS los videos, compilados o no. Cualquiera que
-// abra la pestaña de Red del navegador puede copiar esa URL directamente,
-// sin pasar por este componente. Si video_url apunta a un archivo servido
-// directo (no un stream firmado/tokenizado), esto no evita la descarga o
-// reproducción por fuera de la app. Para bloquear de verdad hace falta que
-// el backend NO devuelva video_url de los videos no comprados (o devuelva
-// una URL firmada de corta duración) cuando el usuario no tiene acceso.
-// Coméntalo con el equipo de backend si este componente necesita ser la
-// única barrera.
+// GET /choreographies/videos/?coreography=:id es PÚBLICO (AllowAny) y ya
+// devuelve la video_url completa de TODOS los videos, comprados o no.
+// Cualquiera que abra la pestaña de Red del navegador puede copiar esa URL
+// directamente, sin pasar por este componente. Si video_url apunta a un
+// archivo servido directo (no un stream firmado/tokenizado), esto no evita
+// la descarga o reproducción por fuera de la app. Para bloquear de verdad
+// hace falta que el backend NO devuelva video_url de los videos no
+// comprados (o devuelva una URL firmada de corta duración) cuando el
+// usuario no tiene acceso. Coméntalo con el equipo de backend si este
+// componente necesita ser la única barrera.
 //
 // ── Supuestos a verificar ────────────────────────────────────────────────────
 // - Ruta esperada: /coreografias/:id (ajusta el nombre del param si tu router
 //   usa otro, ej. :coreografiaId).
-// - Rutas de import a 3 niveles ("../../../..."), igual que la versión corta
-//   que me pasaste. Ajusta si tu archivo vive en otra profundidad.
-// - "Primer video" = video_id más bajo entre los videos de la coreografía
-//   (se ordenan explícitamente por video_id ascendente antes de elegir el
-//   trailer, para no depender del orden en que responda el backend).
 // - El chequeo de compra solo se hace si hay usuario autenticado con
 //   role === "client" (mismo criterio que ya usa el botón de compra). Otros
 //   roles (admin/profesor/director) NO desbloquean videos automáticamente;
 //   si tu flujo real quiere que profesores vean todo, avísame y lo ajusto.
-// - GET /api/sales/ no está documentado en el PDF de endpoints (ese doc solo
-//   describe /api/users/clients/me/history/), así que me guie por cómo lo
-//   consume PurchaseHistory.jsx: res.data es el arreglo de compras y cada
-//   compra trae items: [{ coreography: { coreography_id, c_name, ... } }].
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -103,10 +104,18 @@ const normalizarVideo = (raw) => ({
   upload_date: raw.upload_date,
 });
 
+// GET /sales/ no está 100% documentado: soportamos tanto arreglo plano como
+// el objeto paginado de DRF { count, results }, igual que en
+// PurchaseHistory.jsx.
 const normalizePurchaseHistory = (data) => {
   if (Array.isArray(data)) return data;
   return data?.results ?? [];
 };
+
+// Saca el coreography_id de un item de compra sin importar si viene
+// anidado (item.coreography.coreography_id) o plano (item.coreography_id).
+const extraerCoreographyIdDeItem = (item) =>
+  item?.coreography?.coreography_id ?? item?.coreography_id ?? null;
 
 // Recorre el historial de compras y busca si `coreographyId` aparece en
 // alguno de los items de alguna compra. Compara como string porque el id de
@@ -116,7 +125,7 @@ const buscarCompraDeCoreografia = (purchases, coreographyId) =>
   purchases.some((p) =>
     (p.items || []).some(
       (item) =>
-        String(item?.coreography?.coreography_id) === String(coreographyId),
+        String(extraerCoreographyIdDeItem(item)) === String(coreographyId),
     ),
   );
 
