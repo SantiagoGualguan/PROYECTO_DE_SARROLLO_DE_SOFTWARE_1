@@ -124,9 +124,6 @@ BEGIN
 
     INSERT INTO cart_item (cart_id, coreography_id, unit_price)
     VALUES (existing_cart_id, p_coreography_id, p_unit_price);
-
-EXCEPTION WHEN OTHERS THEN
-    RAISE NOTICE 'Error: %', SQLERRM;
 END;
 $$ LANGUAGE plpgsql;
 -------------------------------------------------------------------------------------------
@@ -180,8 +177,8 @@ BEGIN
     SET s_status = 'completed'
     WHERE cart_id = p_cart_id;
 
-EXCEPTION WHEN OTHERS THEN
-    RAISE NOTICE 'Error: %', SQLERRM;
+--EXCEPTION WHEN OTHERS THEN
+--    RAISE NOTICE 'Error: %', SQLERRM;
 END;
 $$ LANGUAGE plpgsql;
 -------------------------------------------------------------------------------------------
