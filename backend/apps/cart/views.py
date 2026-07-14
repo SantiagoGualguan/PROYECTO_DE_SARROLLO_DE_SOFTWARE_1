@@ -25,6 +25,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.choreographies.models import Coreography
+from apps.sales.models import UserCoreography
 
 from .models import CartItem, ShoppingCart
 from .permissions import IsClientRole
@@ -93,6 +94,23 @@ class CartItemListCreateView(APIView):
         # procedure (así no dependemos de que la función reporte el error,
         # que sabemos que no hace).
         coreography = get_object_or_404(Coreography, pk=coreography_id)
+
+        # Integrity rule: cannot add a choreography the client already owns.
+        # Confirm_payment also enforces this before Stripe; this is the early UX gate.
+        if UserCoreography.objects.filter(
+            user_id=request.user.id,
+            coreography_id=coreography.pk,
+        ).exists():
+            return Response(
+                {
+                    "detail": (
+                        f"Ya has comprado la coreografía '{coreography.c_name}'. "
+                        "No puedes agregarla al carrito de nuevo."
+                    )
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+
         unit_price = coreography.price
 
         cart_before = _get_active_cart(request.user.id, for_write=True)

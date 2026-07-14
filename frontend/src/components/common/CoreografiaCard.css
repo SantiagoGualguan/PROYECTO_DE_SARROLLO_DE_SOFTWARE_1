@@ -1,0 +1,92 @@
+/* src/components/ui/CoreografiaCard/CoreografiaCard.css */
+
+.coreo-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.coreo-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  border-color: var(--color-primary);
+}
+
+/* ── Miniatura ── */
+.coreo-card__thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: var(--color-background-subtle);
+}
+
+.coreo-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.coreo-card:hover .coreo-card__img {
+  transform: scale(1.04);
+}
+
+.coreo-card__img-placeholder {
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-background-subtle);
+}
+
+/* Chip de nivel en la esquina inferior izquierda de la imagen */
+.coreo-card__chip {
+  position: absolute;
+  bottom: var(--space-xs);
+  left: var(--space-xs);
+}
+
+/* ── Cuerpo ── */
+.coreo-card__body {
+  padding: var(--space-sm) var(--space-md) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.coreo-card__title {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.coreo-card__genre {
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.coreo-card__price {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-primary);
+  margin: 0;
+}
+
+.coreo-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import Header from "../../components/layout/Header/Header.jsx";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
@@ -18,14 +20,23 @@ import Alert from "@mui/material/Alert";
 import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
-import { SalesService } from "../../api/cartService";
+import { SalesService } from "../../api/salesService";
 
 const steps = ["Revisar Items", "Datos de Facturación", "Pago y Confirmar"];
 
-const CheckoutWizard = () => {
+// Load once, outside the component, per Stripe's own guidance
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+
+const CheckoutWizardInner = () => {
   const navigate = useNavigate();
-  const { items, total, clearCart, refreshCart } = useCart();
+  const { logout } = useAuth();
+  const { items, cartId, total, resetLocalCart } = useCart();
+  const stripe = useStripe();
+  const elements = useElements();
+
   const [activeStep, setActiveStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -36,7 +47,12 @@ const CheckoutWizard = () => {
     document_number: "",
   });
 
-  const [paymentMethod, setPaymentMethod] = useState("pse");
+  const [paymentMethod, setPaymentMethod] = useState("card");
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   const handleBillingChange = (field) => (e) => {
     setBilling((prev) => ({ ...prev, [field]: e.target.value }));
@@ -63,16 +79,49 @@ const CheckoutWizard = () => {
   const handleConfirm = async () => {
     setSubmitting(true);
     setError(null);
+
+    if (!stripe || !elements) {
+      setError("Stripe no terminó de cargar. Intenta de nuevo en unos segundos.");
+      setSubmitting(false);
+      return;
+    }
+
     try {
+      // Tokenize the card - this produces a real pm_xxx id, which is what
+      // the backend actually needs (not the literal string "card"/"pse")
+      const { error: stripeError, paymentMethod: stripePaymentMethod } =
+        await stripe.createPaymentMethod({
+          type: "card",
+          card: elements.getElement(CardElement),
+          billing_details: {
+            name: billing.titular_name,
+            email: billing.email_address,
+          },
+        });
+
+      if (stripeError) {
+        setError(stripeError.message);
+        setSubmitting(false);
+        return;
+      }
+
+      // POST /sales/ → confirm_payment: finds cart via cart_id or user's active cart,
+      // charges Stripe, then marks the cart completed. Do NOT DELETE /cart/ after —
+      // that 404s with "No tienes un carrito activo." once the cart is completed.
       await SalesService.createPurchase({
-        payment_method: paymentMethod,
+        ...(cartId ? { cart_id: cartId } : {}),
+        payment_method: stripePaymentMethod.id,
+        bill_payment_method: paymentMethod, // "pse" or "card" - just for the Bill record
         email_address: billing.email_address,
         titular_name: billing.titular_name,
         document_number: billing.document_number,
         details: `Compra de ${items.length} coreografía(s)`,
       });
-      await clearCart();
-      navigate("/mis-compras", { state: { success: "¡Compra realizada exitosamente!" } });
+
+      resetLocalCart();
+      navigate("/mis-compras", {
+        state: { success: "¡Compra realizada exitosamente!" },
+      });
     } catch (err) {
       setError(err.response?.data?.detail || "Error al procesar la compra");
     } finally {
@@ -97,10 +146,25 @@ const CheckoutWizard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header showMenu={false} showFullLogo={true} showSearch={false}
-        navItems={[{ label: "Catalogo", to: "/coreografias" }]}
+      <Header
+        showMenu={true}
+        showFullLogo={true}
+        showSearch={false}
+        navItems={[
+          { label: "Dashboard", to: "/dashboard" },
+          { label: "Catalogo", to: "/catalogo" },
+          { label: "Mi Carrito", to: "/carrito" },
+          { label: "Mis compras", to: "/mis-compras" },
+        ]}
+        menuItems={[
+          { label: "Catalogo", to: "/catalogo" },
+          { label: "Mi Carrito", to: "/carrito" },
+          { label: "Mis compras", to: "/mis-compras" },
+          { label: "Mi perfil", to: "/perfil" },
+        ]}
         rightActions={[
           { label: "mi perfil", variant: "contained", color: "primary", onClick: () => navigate("/perfil") },
+          { label: "salir", variant: "outlined", color: "error", icon: <LogoutIcon />, onClick: handleLogout },
         ]}
       />
       <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
@@ -126,9 +190,7 @@ const CheckoutWizard = () => {
         {activeStep === 0 && (
           <Card sx={{ borderRadius: 3, boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
             <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                Items en tu Carrito
-              </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Items en tu Carrito</Typography>
               {items.map((item, idx) => (
                 <React.Fragment key={item.cart_item_id}>
                   {idx > 0 && <Divider sx={{ my: 1 }} />}
@@ -163,19 +225,26 @@ const CheckoutWizard = () => {
         {activeStep === 1 && (
           <Card sx={{ borderRadius: 3, boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
             <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-                Datos de Facturación
-              </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>Datos de Facturación</Typography>
               <div className="flex flex-col gap-4">
-                <TextField label="Correo Electrónico" type="email" fullWidth required size="small"
-                  value={billing.email_address} onChange={handleBillingChange("email_address")}
-                  placeholder="correo@ejemplo.com" />
-                <TextField label="Nombre del Titular" fullWidth required size="small"
-                  value={billing.titular_name} onChange={handleBillingChange("titular_name")}
-                  placeholder="Nombre y Apellido" />
-                <TextField label="Número de Documento" fullWidth required size="small"
-                  value={billing.document_number} onChange={handleBillingChange("document_number")}
-                  placeholder="1234567890" />
+                <TextField
+                  label="Correo Electrónico" type="email" fullWidth required size="small"
+                  value={billing.email_address}
+                  onChange={handleBillingChange("email_address")}
+                  placeholder="correo@ejemplo.com"
+                />
+                <TextField
+                  label="Nombre del Titular" fullWidth required size="small"
+                  value={billing.titular_name}
+                  onChange={handleBillingChange("titular_name")}
+                  placeholder="Nombre y Apellido"
+                />
+                <TextField
+                  label="Número de Documento" fullWidth required size="small"
+                  value={billing.document_number}
+                  onChange={handleBillingChange("document_number")}
+                  placeholder="1234567890"
+                />
               </div>
             </CardContent>
           </Card>
@@ -184,17 +253,20 @@ const CheckoutWizard = () => {
         {activeStep === 2 && (
           <Card sx={{ borderRadius: 3, boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
             <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-                Método de Pago
-              </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>Método de Pago</Typography>
 
-              <FormControl component="fieldset">
+              <FormControl component="fieldset" sx={{ mb: 3 }}>
                 <FormLabel component="legend">Selecciona un método de pago</FormLabel>
                 <RadioGroup value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
-                  <FormControlLabel value="pse" control={<Radio />} label="PSE (Débito desde cuenta bancaria)" />
                   <FormControlLabel value="card" control={<Radio />} label="Tarjeta de Crédito/Débito" />
+                  <FormControlLabel value="pse" control={<Radio />} label="PSE (no disponible aún)" disabled />
                 </RadioGroup>
               </FormControl>
+
+              {/* Card input is always shown for now, since PSE isn't wired end-to-end yet */}
+              <div className="border rounded p-3 mb-3">
+                <CardElement options={{ style: { base: { fontSize: "16px" } } }} />
+              </div>
 
               <Divider sx={{ my: 3 }} />
 
@@ -214,17 +286,22 @@ const CheckoutWizard = () => {
         )}
 
         <div className="flex justify-between mt-4">
-          <Button variant="outlined" onClick={activeStep === 0 ? () => navigate("/carrito") : handleBack} disabled={submitting}>
+          <Button
+            variant="outlined"
+            onClick={activeStep === 0 ? () => navigate("/carrito") : handleBack}
+            disabled={submitting}
+          >
             {activeStep === 0 ? "Volver al Carrito" : "Atrás"}
           </Button>
           {activeStep < steps.length - 1 ? (
-            <Button variant="contained" color="primary" onClick={handleNext}
-              disabled={activeStep === 1 && !isBillingValid()}>
+            <Button
+              variant="contained" color="primary" onClick={handleNext}
+              disabled={activeStep === 1 && !isBillingValid()}
+            >
               Continuar
             </Button>
           ) : (
-            <Button variant="contained" color="primary" onClick={handleConfirm}
-              disabled={submitting}>
+            <Button variant="contained" color="primary" onClick={handleConfirm} disabled={submitting || !stripe}>
               {submitting ? "Procesando..." : "Confirmar y Pagar"}
             </Button>
           )}
@@ -233,5 +310,12 @@ const CheckoutWizard = () => {
     </div>
   );
 };
+
+// Elements needs to wrap the component that calls useStripe/useElements
+const CheckoutWizard = () => (
+  <Elements stripe={stripePromise}>
+    <CheckoutWizardInner />
+  </Elements>
+);
 
 export default CheckoutWizard;

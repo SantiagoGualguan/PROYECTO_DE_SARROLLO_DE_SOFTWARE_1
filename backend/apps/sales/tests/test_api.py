@@ -216,6 +216,10 @@ class PurchaseViewSetTest(SimpleTestCase):
         qs.first.return_value = cart
         mock_cart_objects.select_related.return_value = qs
 
+        owned_qs = MagicMock()
+        owned_qs.values_list.return_value = []
+        mock_user_coreography_objects.filter.return_value = owned_qs
+
         intent = MagicMock()
         intent.id = "pi_123"
         intent.status = "succeeded"
@@ -267,11 +271,55 @@ class PurchaseViewSetTest(SimpleTestCase):
         self.assertEqual(purchase_call.kwargs["defaults"]["cart"], cart)
         mock_bill_objects.get_or_create.assert_called_once()
         self.assertEqual(mock_bill_objects.get_or_create.call_args.kwargs["defaults"]["payment_method"], "pse")
-        mock_user_coreography_objects.update_or_create.assert_called_once()
+        mock_user_coreography_objects.create.assert_called_once()
         self.assertEqual(cart.s_status, "completed")
+
+    @patch("apps.sales.views.UserCoreography.objects")
+    @patch("apps.sales.views.stripe.PaymentIntent.create")
+    @patch("apps.sales.views.ShoppingCart.objects")
+    def test_confirm_payment_rejects_already_owned_before_stripe(
+        self,
+        mock_cart_objects,
+        mock_payment_intent_create,
+        mock_user_coreography_objects,
+    ):
+        cart = _make_cart(
+            cart_id=1,
+            user=self.user,
+            items=[_make_cart_item(coreography_id=10, c_name="Salsa Básica")],
+        )
+        qs = MagicMock()
+        qs.select_related.return_value = qs
+        qs.prefetch_related.return_value = qs
+        qs.filter.return_value = qs
+        qs.first.return_value = cart
+        mock_cart_objects.select_related.return_value = qs
+
+        owned_qs = MagicMock()
+        owned_qs.values_list.return_value = [10]
+        mock_user_coreography_objects.filter.return_value = owned_qs
+
+        request = self._build_request(
+            "post",
+            "/api/sales/confirm-payment/",
+            {
+                "cart_id": 1,
+                "payment_method": "pm_card_visa",
+                "currency": "usd",
+                "email_address": "buyer@test.com",
+                "titular_name": "Buyer Name",
+                "document_number": "100200300",
+            },
+        )
+        response = PurchaseViewSet.as_view({"post": "confirm_payment"})(request)
+
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+        self.assertIn("Salsa Básica", response.data["detail"])
+        mock_payment_intent_create.assert_not_called()
 
     @patch.object(PurchaseViewSet, "_serialize_bill", return_value={"id": 9})
     @patch.object(PurchaseViewSet, "_serialize_purchase", return_value={"purchase_id": 8})
+    @patch("apps.sales.views.UserCoreography.objects")
     @patch("apps.sales.views.Bill.objects")
     @patch("apps.sales.views.Purchase.objects")
     @patch("apps.sales.views.stripe.Refund.create")
@@ -286,6 +334,7 @@ class PurchaseViewSetTest(SimpleTestCase):
         mock_refund_create,
         mock_purchase_objects,
         mock_bill_objects,
+        mock_user_coreography_objects,
         mock_serialize_purchase,
         mock_serialize_bill,
     ):
@@ -299,6 +348,10 @@ class PurchaseViewSetTest(SimpleTestCase):
         qs.filter.return_value = qs
         qs.first.return_value = cart
         mock_cart_objects.select_related.return_value = qs
+
+        owned_qs = MagicMock()
+        owned_qs.values_list.return_value = []
+        mock_user_coreography_objects.filter.return_value = owned_qs
 
         intent = MagicMock()
         intent.id = "pi_456"

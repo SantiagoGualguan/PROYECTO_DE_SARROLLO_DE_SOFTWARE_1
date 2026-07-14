@@ -1,7 +1,5 @@
 from django.db import models
-
 from apps.users.models import Profesor
-
 
 class Coreography(models.Model):
     DIFFICULTY_CHOICES = [
@@ -64,4 +62,3 @@ class Video(models.Model):
 
     def __str__(self):
         return self.video_name
-

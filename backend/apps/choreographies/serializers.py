@@ -5,12 +5,16 @@ from .models import Coreography, Video
 
 
 class VideoSerializer(serializers.ModelSerializer):
-    # TODO: ajustar campos y validaciones de Video
+    coreography_id = serializers.PrimaryKeyRelatedField(
+        source="coreography",
+        queryset=Coreography.objects.all(),
+        write_only=True,
+    )
 
     class Meta:
         model = Video
-        fields = "__all__"
-        read_only_fields = ["upload_date"]
+        fields = ["video_id", "video_name", "video_url", "coreography_id", "upload_date"]
+        read_only_fields = ["video_id", "upload_date"]
 
     def create(self, validated_data):
         validated_data.setdefault("upload_date", timezone.now())

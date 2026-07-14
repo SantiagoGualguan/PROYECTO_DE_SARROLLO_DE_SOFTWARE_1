@@ -4,6 +4,7 @@ import Button from "../../components/ui/Button/Button.jsx";
 import { TextField, IconButton, InputAdornment } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { UserService } from "../../api/userService.js";
+import Footer from "../../components/layout/Footer/Footer.jsx";
 import "./UserProfile.css";
 
 const UserProfile = () => {
@@ -209,6 +210,7 @@ const UserProfile = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

@@ -1,0 +1,209 @@
+/* src/pages/Coreografias/Coreografias.css */
+
+/* ── Página ───────────────────────────────────────────────────────────────── */
+.coreografias-page {
+  padding-top: var(--space-lg);
+  padding-bottom: var(--space-2xl);
+  min-height: 100vh;
+  background-color: var(--color-background);
+}
+
+/* ── Topbar: buscador + botón filtro ─────────────────────────────────────── */
+/*
+  En el mockup están en la misma fila con el buscador ocupando el espacio
+  disponible y el botón "Filtro" a la derecha con ícono + texto.
+*/
+.coreografias-topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.coreografias-search {
+  /* El TextField de MUI ocupa el espacio restante gracias a fullWidth  */
+  /* max-width limita el crecimiento en pantallas muy anchas            */
+  max-width: 480px;
+}
+
+/* Estilos del input de MUI: bordes redondeados como en el mockup */
+.coreografias-search .MuiOutlinedInput-root {
+  border-radius: var(--border-radius-lg) !important;
+  background: var(--color-surface);
+}
+
+.coreografias-search-clear {
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: color 0.15s ease;
+}
+
+.coreografias-search-clear:hover {
+  color: var(--color-text-primary);
+}
+
+/* Botón Filtro */
+.coreografias-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  padding: 0.5rem var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+  position: relative; /* para el badge */
+}
+
+.coreografias-filter-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* Cuando el panel está abierto, el botón se resalta */
+.coreografias-filter-btn--active {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-light, #fbeaf0);
+}
+
+/* Badge numérico con la cantidad de filtros activos */
+.coreografias-filter-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-left: var(--space-2xs);
+}
+
+/* ── Panel de filtros ─────────────────────────────────────────────────────── */
+/*
+  Se muestra/oculta con el componente Collapse de MUI (animación suave).
+  Tiene fondo ligeramente diferenciado, borde inferior y tres grupos de chips.
+*/
+.coreografias-filters-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* Grupo de un filtro: label + fila de chips */
+.coreografias-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.coreografias-filter-label {
+  font-family: var(--font-body);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+/* Fila de chips con wrap para que no se desborden en móvil */
+.coreografias-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+/* Botón limpiar filtros dentro del panel */
+.coreografias-clear-btn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary) !important;
+  padding: 0;
+  text-decoration: none !important;
+}
+
+.coreografias-clear-btn:hover {
+  color: var(--color-primary) !important;
+}
+
+/* ── Chips de filtros activos (resumen siempre visible) ──────────────────── */
+/*
+  Aparecen debajo del topbar cuando hay filtros activos,
+  incluso con el panel cerrado. Cada chip tiene botón "x" para quitarlo.
+*/
+.coreografias-active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+}
+
+/* ── Modo secciones (carruseles) ─────────────────────────────────────────── */
+.coreografias-secciones {
+  margin-top: var(--space-lg);
+}
+
+/* ── Modo grilla (búsqueda / filtro activo) ──────────────────────────────── */
+.coreografias-grid-section {
+  margin-top: var(--space-lg);
+}
+
+.coreografias-grid-header {
+  margin-bottom: var(--space-md);
+}
+
+.coreografias-grid-count {
+  font-family: var(--font-body);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Estado vacío: sin resultados */
+.coreografias-empty {
+  text-align: center;
+  padding: var(--space-2xl) 0;
+  color: var(--color-text-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.coreografias-empty p {
+  font-family: var(--font-body);
+  font-size: var(--font-size-md);
+  margin: 0;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 575.98px) {
+  /* En móvil la búsqueda ocupa todo el ancho y el botón va debajo */
+  .coreografias-topbar {
+    flex-wrap: wrap;
+  }
+
+  .coreografias-search {
+    max-width: 100%;
+    flex: 1 1 100%;
+  }
+}

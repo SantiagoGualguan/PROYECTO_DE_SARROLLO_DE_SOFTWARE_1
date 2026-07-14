@@ -5,6 +5,8 @@ import { TextField, IconButton, InputAdornment, MenuItem } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import Button from "../../components/ui/Button/Button.jsx";
 import { UserService } from "../../api/userService.js";
+import { useAuth } from "../../context/AuthContext";
+import LogoutIcon from "@mui/icons-material/Logout";
 import "./UserForm.css";
 
 const ROLES = [
@@ -14,10 +16,16 @@ const ROLES = [
 
 const UserForm = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(null);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   const [form, setForm] = useState({
     nombre: "",
@@ -87,13 +95,25 @@ const UserForm = () => {
         showFullLogo={true}
         showSearch={true}
         navItems={[
+          { label: "dashboard", to: "/dashboard" },
+          { label: "Catalogo", to: "/catalogo" },
           { label: "Usuarios", to: "/admin/usuarios" },
-          { label: "Coreografías", to: "/coreografias" },
+          { label: "Coreografías", to: "/admin/coreografias" },
         ]}
         menuItems={[
-          // ← items exclusivos del sidebar
-          { label: "Lista de usuarios", to: "/admin/usuarios" },
+          { label: "Solicitudes de profesores", to: "/director/solicitudes" },
+          { label: "Usuarios", to: "/admin/usuarios" },
+          { label: "Coreografías", to: "/admin/coreografias" },
           { label: "Crear usuario", to: "/admin/usuarios/new" },
+        ]}
+        rightActions={[
+          {
+            label: "salir",
+            variant: "outlined",
+            color: "error",
+            icon: <LogoutIcon />,
+            onClick: handleLogout,
+          },
         ]}
       />
       <div className="container userform-container">

@@ -2,7 +2,7 @@ from decimal import Decimal, InvalidOperation
 
 import stripe
 from django.conf import settings
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -141,6 +141,45 @@ class PurchaseViewSet(viewsets.ModelViewSet):
             total += Decimal(str(item.unit_price))
         return total
 
+    def _already_owned_conflict_response(self, user, cart):
+        """
+        Business integrity rule: a client cannot buy the same choreography twice.
+        Must run before Stripe is charged.
+        """
+        items_relation = getattr(cart, "items", None)
+        if not items_relation or not hasattr(items_relation, "select_related"):
+            return None
+
+        cart_items = list(items_relation.select_related("coreography").all())
+        if not cart_items:
+            return None
+
+        cart_coreography_ids = {item.coreography_id for item in cart_items}
+        owned_coreography_ids = set(
+            UserCoreography.objects.filter(
+                user=user,
+                coreography_id__in=cart_coreography_ids,
+            ).values_list("coreography_id", flat=True)
+        )
+        already_owned = cart_coreography_ids & owned_coreography_ids
+        if not already_owned:
+            return None
+
+        owned_names = [
+            item.coreography.c_name
+            for item in cart_items
+            if item.coreography_id in already_owned
+        ]
+        return Response(
+            {
+                "detail": (
+                    "Ya has comprado una o más coreografías en tu carrito: "
+                    f"{', '.join(owned_names)}. Elimínalas del carrito para continuar."
+                )
+            },
+            status=status.HTTP_409_CONFLICT,
+        )
+
     def _finalize_purchase(self, *, user, cart, payment_intent_id, payment_method, billing_data):
         items_relation = getattr(cart, "items", None)
         if not items_relation or not hasattr(items_relation, "select_related"):
@@ -173,11 +212,18 @@ class PurchaseViewSet(viewsets.ModelViewSet):
                 purchase.save(update_fields=purchase_fields_to_update)
 
             for cart_item in cart_items:
-                UserCoreography.objects.update_or_create(
-                    user=user,
-                    coreography=cart_item.coreography,
-                    defaults={"purchase": purchase},
-                )
+                # create-only: duplicates are rejected earlier in confirm_payment.
+                # IntegrityError covers a race if two payments pass the check.
+                try:
+                    UserCoreography.objects.create(
+                        user=user,
+                        coreography=cart_item.coreography,
+                        purchase=purchase,
+                    )
+                except IntegrityError as exc:
+                    raise ValueError(
+                        "Ya posees una o más coreografías de este carrito."
+                    ) from exc
 
                 cart_item.coreography.times_sold = (cart_item.coreography.times_sold or 0) + 1
                 cart_item.coreography.save(update_fields=["times_sold"])
@@ -383,6 +429,10 @@ class PurchaseViewSet(viewsets.ModelViewSet):
                 {"detail": "No se encontro un carrito valido para procesar el pago."},
                 status=status.HTTP_404_NOT_FOUND,
             )
+
+        owned_conflict = self._already_owned_conflict_response(request.user, cart)
+        if owned_conflict:
+            return owned_conflict
 
         amount = self._calculate_cart_total(cart)
         payment_method = request.data.get("payment_method")
