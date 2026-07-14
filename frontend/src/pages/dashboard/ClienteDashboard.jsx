@@ -100,6 +100,7 @@ const ClienteDashboard = () => {
           { label: "Mi Carrito", to: "/carrito" },
           { label: "Mis compras", to: "/mis-compras" },
           { label: "Mi perfil", to: "/perfil" },
+          { label: "historial de compras", to: "/mi-historial-de-compras" },
         ]}
         rightActions={[
           {
