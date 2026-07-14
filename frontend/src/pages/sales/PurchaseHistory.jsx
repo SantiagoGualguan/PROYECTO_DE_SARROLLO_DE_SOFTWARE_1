@@ -94,6 +94,7 @@ const PurchaseHistory = () => {
           { label: "Mi Carrito", to: "/carrito" },
           { label: "Mis compras", to: "/mis-compras" },
           { label: "Mi perfil", to: "/perfil" },
+          { label: "historial de compras", to: "/mi-historial-de-compras" },
         ]}
         rightActions={[
           {
@@ -124,7 +125,7 @@ const PurchaseHistory = () => {
               fontSize: { xs: "1.5rem", sm: "2rem" },
             }}
           >
-            Mis Compras
+            Mi historial de compras
           </Typography>
         </div>
 

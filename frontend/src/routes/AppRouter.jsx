@@ -36,7 +36,7 @@ import LandingPageV2 from "../pages/public/LandingPageV2";
 import TeacherApplicationList from "../pages/users/TeacherApplicationList";
 import UserEditForm from "../pages/users/UserEditForm";
 import DashboardRedirect from "../components/common/DashboardRedirect.jsx";
-
+import UserPurchase from "../pages/sales/UserPurchase.jsx";
 // RUTAS PÚBLICAS (sin auth):
 // / → LandingPage
 // /catalogo → CatalogPublic
@@ -165,10 +165,19 @@ const AppRouter = () => {
         }
       />
       <Route
-        path="/mis-compras"
+        path="/mi-historial-de-compras"
         element={
           <ProtectedRoute allowedRoles={["client"]}>
             <PurchaseHistory />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/mis-compras"
+        element={
+          <ProtectedRoute allowedRoles={["client"]}>
+            <UserPurchase />
           </ProtectedRoute>
         }
       />
