@@ -13,8 +13,12 @@ def _split_env_list(key, default=""):
 
 DEBUG = False
 
-ALLOWED_HOSTS = _split_env_list("ALLOWED_HOSTS", "localhost",'dancelearn.onrender.com','proyecto-de-sarrollo-de-software-1.vercel.app')
-
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'dancelearn.onrender.com',
+    'proyecto-de-sarrollo-de-software-1.vercel.app'
+]
 CORS_ALLOWED_ORIGINS = _split_env_list("CORS_ALLOWED_ORIGINS")
 CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
