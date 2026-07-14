@@ -15,6 +15,35 @@ import Footer from "../../components/layout/Footer/Footer.jsx";
 import { useAuth } from "../../context/AuthContext";
 import { SalesService } from "../../api/salesService";
 
+// GET /api/sales/ no está documentado en el PDF, pero backend confirmó que
+// responde igual que el endpoint documentado de historial
+// (/api/users/clients/me/history/): un objeto paginado de DRF
+// { count, next, previous, results: [...] }, no un arreglo plano.
+// Este normalizador soporta ambas formas (por si algún día cambia a
+// devolver un arreglo directo) para que la pantalla nunca truene.
+const normalizePurchaseHistory = (data) => {
+  if (Array.isArray(data)) return data;
+  return data?.results ?? [];
+};
+
+// Cada item de una compra puede venir anidado (item.coreography.coreography_id,
+// item.coreography.c_name) o plano, como en el endpoint documentado del PDF
+// (item.coreography_id, item.coreography_name). Este normalizador soporta
+// ambas formas y SIEMPRE devuelve un id utilizable para la key de React y
+// para la navegación — evita que un campo inesperado deje todos los Chips
+// con key=undefined (que fue justo lo que causó el warning de keys duplicadas).
+const normalizarItemCompra = (item, fallbackIndex) => {
+  const coreographyId =
+    item?.coreography?.coreography_id ?? item?.coreography_id ?? null;
+  const coreographyName =
+    item?.coreography?.c_name ?? item?.coreography_name ?? "Coreografía";
+  return {
+    key: item?.id ?? coreographyId ?? `sin-id-${fallbackIndex}`,
+    coreographyId,
+    coreographyName,
+  };
+};
+
 const PurchaseHistory = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,10 +60,15 @@ const PurchaseHistory = () => {
 
   useEffect(() => {
     SalesService.getPurchaseHistory()
-      .then((res) => setPurchases(res.data))
+      .then((res) => setPurchases(normalizePurchaseHistory(res.data)))
       .catch(() => setError("Error al cargar el historial"))
       .finally(() => setLoading(false));
   }, []);
+
+  const irACoreografia = (coreographyId) => {
+    if (!coreographyId) return;
+    navigate(`/coreografias/${coreographyId}`);
+  };
 
   if (loading)
     return (
@@ -159,19 +193,28 @@ const PurchaseHistory = () => {
                             : "Fecha no disponible"}
                         </Typography>
                         <div className="flex gap-1 mt-2 flex-wrap">
-                          {(p.items || []).map((item) => (
-                            <Chip
-                              key={item.coreography?.coreography_id}
-                              label={item.coreography?.c_name || "Coreografía"}
-                              size="small"
-                              variant="outlined"
-                              color="primary"
-                              sx={{
-                                fontSize: { xs: "0.65rem", sm: "0.75rem" },
-                                height: { xs: 22, sm: 28 },
-                              }}
-                            />
-                          ))}
+                          {(p.items || []).map((item, idx) => {
+                            const { key, coreographyId, coreographyName } =
+                              normalizarItemCompra(
+                                item,
+                                `${p.purchase_id}-${idx}`,
+                              );
+                            return (
+                              <Chip
+                                key={key}
+                                label={coreographyName}
+                                size="small"
+                                variant="outlined"
+                                color="primary"
+                                clickable={Boolean(coreographyId)}
+                                onClick={() => irACoreografia(coreographyId)}
+                                sx={{
+                                  fontSize: { xs: "0.65rem", sm: "0.75rem" },
+                                  height: { xs: 22, sm: 28 },
+                                }}
+                              />
+                            );
+                          })}
                         </div>
                       </div>
                       <div className="text-left sm:text-right shrink-0">
