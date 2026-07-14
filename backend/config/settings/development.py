@@ -2,7 +2,7 @@ from .base import *
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1','dancelearn-backend.onrender.com','proyecto-de-sarrollo-de-software-1.vercel.app']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1','dancelearn.onrender.com','proyecto-de-sarrollo-de-software-1.vercel.app']
 
 CORS_ALLOW_ALL_ORIGINS = True  # solo en desarrollo
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
