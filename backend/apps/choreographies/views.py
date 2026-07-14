@@ -90,7 +90,9 @@ class CoreographyViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="top-selling")
     def top_selling(self, request):
-        raise NotImplementedError("TODO: implementar coreografías más vendidas")
+        queryset = self.filter_queryset(self.get_queryset()).order_by("-times_sold", "-coreography_id")
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class VideoViewSet(viewsets.ModelViewSet):
