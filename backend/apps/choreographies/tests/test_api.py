@@ -54,6 +54,15 @@ class CoreographyListTest(SimpleTestCase):
         self.assertIsInstance(response.data, list)
         self.assertEqual(len(response.data), 1)
 
+    @patch.object(CoreographyViewSet, 'get_queryset')
+    @patch.object(CoreographyViewSet, 'filter_queryset')
+    def test_root_list_route_is_available(self, mock_filter, mock_get_queryset):
+        mock_get_queryset.return_value = []
+        mock_filter.return_value = []
+
+        response = self.client.get("/api/choreographies/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
 
 class CoreographyCreateTest(SimpleTestCase):
     def test_unauthenticated_denied(self):

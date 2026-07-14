@@ -12,6 +12,8 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { UserService } from "../../api/userService.js";
+import { useAuth } from "../../context/AuthContext";
+import LogoutIcon from "@mui/icons-material/Logout";
 import "./UserForm.css"; // reutiliza los mismos estilos
 
 const ROLES = [
@@ -23,12 +25,18 @@ const ROLES = [
 const UserEditForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { logout } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   const [form, setForm] = useState({
     nombre: "",
@@ -119,14 +127,27 @@ const UserEditForm = () => {
         <Header
           showMenu={true}
           showFullLogo={true}
-          showSearch={false}
+          showSearch={true}
           navItems={[
+            { label: "dashboard", to: "/dashboard" },
+            { label: "Catalogo", to: "/catalogo" },
             { label: "Usuarios", to: "/admin/usuarios" },
-            { label: "Coreografías", to: "/coreografias" },
+            { label: "Coreografías", to: "/admin/coreografias" },
           ]}
           menuItems={[
-            { label: "Lista de usuarios", to: "/admin/usuarios" },
+            { label: "Solicitudes de profesores", to: "/director/solicitudes" },
+            { label: "Usuarios", to: "/admin/usuarios" },
+            { label: "Coreografías", to: "/admin/coreografias" },
             { label: "Crear usuario", to: "/admin/usuarios/new" },
+          ]}
+          rightActions={[
+            {
+              label: "salir",
+              variant: "outlined",
+              color: "error",
+              icon: <LogoutIcon />,
+              onClick: handleLogout,
+            },
           ]}
         />
         <p style={{ padding: "2rem" }}>Cargando datos del usuario...</p>
@@ -139,14 +160,27 @@ const UserEditForm = () => {
       <Header
         showMenu={true}
         showFullLogo={true}
-        showSearch={false}
+        showSearch={true}
         navItems={[
+          { label: "dashboard", to: "/dashboard" },
+          { label: "Catalogo", to: "/catalogo" },
           { label: "Usuarios", to: "/admin/usuarios" },
-          { label: "Coreografías", to: "/coreografias" },
+          { label: "Coreografías", to: "/admin/coreografias" },
         ]}
         menuItems={[
-          { label: "Lista de usuarios", to: "/admin/usuarios" },
+          { label: "Solicitudes de profesores", to: "/director/solicitudes" },
+          { label: "Usuarios", to: "/admin/usuarios" },
+          { label: "Coreografías", to: "/admin/coreografias" },
           { label: "Crear usuario", to: "/admin/usuarios/new" },
+        ]}
+        rightActions={[
+          {
+            label: "salir",
+            variant: "outlined",
+            color: "error",
+            icon: <LogoutIcon />,
+            onClick: handleLogout,
+          },
         ]}
       />
       <div className="container userform-container">

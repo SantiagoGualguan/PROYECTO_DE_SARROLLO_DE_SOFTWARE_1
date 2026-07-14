@@ -1,22 +1,17 @@
 from django.urls import path
 
-from .views import ShoppingCartViewSet, CartItemViewSet
+from .views import (
+    CartItemDetailView,
+    CartItemListCreateView,
+    ShoppingCartView,
+)
 
-carrito_list = ShoppingCartViewSet.as_view({"get": "list"})
-item_create = CartItemViewSet.as_view({"post": "create"})
-item_delete = CartItemViewSet.as_view({"delete": "destroy"})
+app_name = "cart"
 
 urlpatterns = [
-    # CART: GET /api/cart/
-    path("", carrito_list, name="cart-active"),
-    # CART ITEMS:
-    path("items/", item_create, name="cart-item-create"),  # POST /api/cart/items/
-    path(
-        "items/<int:pk>/",
-        item_delete,
-        name="cart-item-delete",
-    ),  # DELETE /api/cart/items/<id>/
-    # Nota: la ruta DELETE /api/cart/ para vaciar carrito se manejará en la misma vista usando método HTTP.
+    # GET  -> ver carrito activo
+    # DELETE -> vaciar carrito activo
+    path("", ShoppingCartView.as_view(), name="cart-detail"),
+    path("items/", CartItemListCreateView.as_view(), name="cart-items"),
+    path("items/<int:pk>/", CartItemDetailView.as_view(), name="cart-item-detail"),
 ]
-
-

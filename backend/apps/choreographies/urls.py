@@ -4,12 +4,20 @@ from rest_framework.routers import DefaultRouter
 from .views import CoreographyViewSet, VideoViewSet
 
 choreography_router = DefaultRouter()
-choreography_router.register(r"(?P<cid>[0-9]+)", CoreographyViewSet, basename="choreographies")
-
-video_router = DefaultRouter()
-video_router.register(r"", VideoViewSet, basename="videos")
+choreography_router.register(r"", CoreographyViewSet, basename="choreographies")
 
 urlpatterns = [
+    path(
+        "videos/",
+        VideoViewSet.as_view({"get": "list", "post": "create"}),
+        name="video-list",
+    ),
+    path(
+        "videos/<int:pk>/",
+        VideoViewSet.as_view(
+            {"get": "retrieve", "put": "update", "patch": "partial_update", "delete": "destroy"}
+        ),
+        name="video-detail",
+    ),
     path("", include(choreography_router.urls)),
-    path("videos/", include(video_router.urls)),
 ]

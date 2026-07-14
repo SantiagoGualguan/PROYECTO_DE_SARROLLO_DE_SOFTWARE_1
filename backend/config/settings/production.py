@@ -2,21 +2,26 @@ from .base import *
 
 import os
 
+
+def _split_env_list(key, default=""):
+    return [
+        item.strip()
+        for item in os.environ.get(key, default).split(",")
+        if item.strip()
+    ]
+
+
 DEBUG = False
 
-ALLOWED_HOSTS = [os.environ.get('ALLOWED_HOSTS', 'localhost')]
+ALLOWED_HOSTS = _split_env_list("ALLOWED_HOSTS", "localhost")
 
-CORS_ALLOWED_ORIGINS = [os.environ.get('FRONTEND_URL', 'http://localhost:5173')]
+CORS_ALLOWED_ORIGINS = _split_env_list("CORS_ALLOWED_ORIGINS")
+CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
-# Conexión a Supabase — Direct Connection
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME':     os.environ.get('SUPABASE_DB_NAME', 'postgres'),
-        'USER':     os.environ.get('SUPABASE_DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('SUPABASE_DB_PASSWORD'),
-        'HOST':     os.environ.get('SUPABASE_DB_HOST'),
-        'PORT':     '5432',
-        'OPTIONS':  {'sslmode': 'require'},
-    }
-}
+# DATABASE_URL is configured in base.py via dj-database-url (ssl_require=True).
+
+MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
